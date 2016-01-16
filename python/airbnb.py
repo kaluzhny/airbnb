@@ -48,7 +48,8 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_simple_more_session_features_xg_etc_rf_ada_gbc_' + submission_suffix + '.csv')
+        'submission_simple_more_session_features_xg_etc_rf_ada_gbc_act120_det60_' +
+        submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():
             print('===== Making cross-validation')

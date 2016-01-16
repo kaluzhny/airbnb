@@ -65,7 +65,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                , max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, False, test_columns=self.test_columns)
 
@@ -85,7 +85,7 @@ class TestDataTask(Task):
 
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                , max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, True)
 
@@ -255,7 +255,7 @@ class MakePredictionTask(Task):
 
         print('adding gbc feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            GradientBoostingClassifier(max_depth=4, n_estimators=100, random_state=self.task_core.n_seed),
+            GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
@@ -345,7 +345,7 @@ class MakePredictionTask(Task):
 
         print('adding gbc feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            GradientBoostingClassifier(max_depth=4, n_estimators=100, random_state=self.task_core.n_seed),
+            GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
