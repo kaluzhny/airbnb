@@ -20,59 +20,27 @@ from blend import add_blend_feature, train_blend_no_session_feature, train_blend
 
 
 TaskCore = namedtuple('TaskCore', ['data_file', 'sessions_data_file', 'test_data_file', 'submission_file',
-                                   'cv_ratio'])
+                                   'cv_ratio', 'n_threads', 'n_seed'])
 destinations = ['NDF', 'US', 'other', 'FR', 'CA', 'GB', 'ES', 'IT', 'DE', 'NL',  'AU', 'PT',]
 
 le_ = LabelEncoder()
 le_.fit(destinations)
-print('classes: ', le_.classes_)
 
 
 def x_from_df(data_df, sessions_df, is_test, test_columns=None):
 
     print('x_from_df <<')
-
     data_df = add_features(data_df, test_columns)
-
     data_df = add_sessions_features(data_df, sessions_df)
-
     data_df = data_df.drop([ 'id' ], axis=1)
-
     if not is_test:
         data_df = data_df.drop([ 'country_destination' ], axis=1)
-
     print_columns(data_df.columns.values)
 
     x = data_df.as_matrix()
     x = x.astype(float)
-
     print('x_from_df >>')
-
     return x, data_df.columns.values
-
-
-def load_train_data(path, sessions_df, test_columns):
-    data_df = read_from_csv(path #, max_rows=20000
-                            )
-
-    # data_df=data_df[~data_df['country_destination'].isin(['DE', 'NL', 'AU', 'PT'])]
-    # print('data_df len after ~isin: ', len(data_df.index))
-
-    x, columns = x_from_df(data_df, sessions_df, False, test_columns=test_columns)
-
-    labels = data_df['country_destination'].values
-    y = le_.transform(labels)
-
-    return {'X': x, 'Y': y, 'columns': columns}
-
-
-def load_test_data(path, sessions_df):
-    data_df = read_from_csv(path #, max_rows=20000
-                            )
-    x, columns = x_from_df(data_df, sessions_df, True)
-
-    ids = data_df['id'].tolist()
-    return {'X': x, 'columns': columns, 'ids': ids}
 
 
 def load_sessions(path):
@@ -95,18 +63,39 @@ class TrainingDataTask(Task):
         super(TrainingDataTask, self).__init__(task_core)
         self.test_columns = test_columns
 
+    def load_train_data(self, sessions_df):
+        data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
+                                , max_rows=10000
+                                )
+        x, columns = x_from_df(data_df, sessions_df, False, test_columns=self.test_columns)
+
+        labels = data_df['country_destination'].values
+        y = le_.transform(labels)
+
+        return {'X': x, 'Y': y, 'columns': columns}
+
     def load_data(self):
         print('Loading train data ', self.task_core.data_file, ' to pandas data frame')
         sessions_df = load_sessions(self.task_core.sessions_data_file)
-        data = load_train_data(self.task_core.data_file, sessions_df, self.test_columns)
+        data = self.load_train_data(sessions_df)
         return data
 
 
 class TestDataTask(Task):
+
+    def load_test_data(self, sessions_df):
+        data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
+                                , max_rows=10000
+                                )
+        x, columns = x_from_df(data_df, sessions_df, True)
+
+        ids = data_df['id'].tolist()
+        return {'X': x, 'columns': columns, 'ids': ids}
+
     def load_data(self):
         print('Loading test data ', self.task_core.test_data_file, ' to pandas data frame')
         sessions_df = load_sessions(self.task_core.sessions_data_file)
-        data = load_test_data(self.task_core.test_data_file, sessions_df)
+        data = self.load_test_data(sessions_df)
         return data
 
 
@@ -220,62 +209,67 @@ class MakePredictionTask(Task):
 
         print('adding xgboost feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            XGBClassifier(objective='multi:softmax', max_depth=4, nthread=2),
+            XGBClassifier(objective='multi:softmax', max_depth=4,
+                          nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
             train_columns, test_columns,
-            "xg_1_")
+            "xg_1_", self.task_core.n_seed)
 
         print('adding rfc feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-           RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=2),
+           RandomForestClassifier(n_estimators=100, criterion='gini',
+                                  n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
            classes_count,
            True,
            x_train, y_train, x_test,
            train_columns, test_columns,
-           "rfc_1_")
+           "rfc_1_", self.task_core.n_seed)
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-           RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=2),
+           RandomForestClassifier(n_estimators=100, criterion='entropy',
+                                  n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
            classes_count,
            True,
            x_train, y_train, x_test,
            train_columns, test_columns,
-           "rfc_2_")
+           "rfc_2_", self.task_core.n_seed)
 
         print('adding etc feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, n_jobs=2, criterion='gini'),
+            ExtraTreesClassifier(n_estimators=100, criterion='gini',
+                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
             train_columns, test_columns,
-            "etc_1_")
+            "etc_1_", self.task_core.n_seed)
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, n_jobs=2, criterion='entropy'),
+            ExtraTreesClassifier(n_estimators=100, criterion='entropy',
+                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
             train_columns, test_columns,
-            "etc_2_")
+            "etc_2_", self.task_core.n_seed)
 
         print('adding gbc feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=50),
+            GradientBoostingClassifier(max_depth=4, n_estimators=100, random_state=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
             train_columns, test_columns,
-            "gbc_1_")
+            "gbc_1_", self.task_core.n_seed)
 
         print('adding ada feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
-            AdaBoostClassifier(base_estimator=None, n_estimators=300, learning_rate=1.0, algorithm='SAMME.R', random_state=None),
+            AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed),
             classes_count,
             True,
             x_train, y_train, x_test,
             train_columns, test_columns,
-            "ada_1_")
+            "ada_1_", self.task_core.n_seed)
 
         # print('adding sgb feature 1...')
         # x_train, x_test, train_columns, test_columns = add_blend_feature(
@@ -284,7 +278,7 @@ class MakePredictionTask(Task):
         #     True,
         #     x_train, y_train, x_test,
         #     train_columns, test_columns,
-        #     "sgd_1_")
+        #     "sgd_1_", self.task_core.n_seed)
 
         print('x_train: ', x_train.shape)
         print('x_test: ', x_test.shape)
@@ -303,64 +297,69 @@ class MakePredictionTask(Task):
 
         print('adding xgboost feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            XGBClassifier(objective='multi:softmax', max_depth=4, nthread=2),
+            XGBClassifier(objective='multi:softmax', max_depth=4,
+                          nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "xg_2014_")
+            "xg_2014_", self.task_core.n_seed)
 
         print('adding rfc feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=2),
+            RandomForestClassifier(n_estimators=100, criterion='gini',
+                                   n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "rfc_2014_1_")
+            "rfc_2014_1_", self.task_core.n_seed)
 
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=2),
+            RandomForestClassifier(n_estimators=100, criterion='entropy',
+                                   n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "rfc_2014_2_")
+            "rfc_2014_2_", self.task_core.n_seed)
 
         print('adding etc feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, n_jobs=2, criterion='gini'),
+            ExtraTreesClassifier(n_estimators=100, criterion='gini',
+                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "etc_2014_1_")
+            "etc_2014_1_", self.task_core.n_seed)
 
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, n_jobs=2, criterion='entropy'),
+            ExtraTreesClassifier(n_estimators=100, criterion='entropy',
+                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "etc_2014_2_")
+            "etc_2014_2_", self.task_core.n_seed)
 
         print('adding gbc feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            GradientBoostingClassifier(learning_rate=0.05, subsample=0.5, max_depth=6, n_estimators=50),
+            GradientBoostingClassifier(max_depth=4, n_estimators=100, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "gbc_2014_1_")
+            "gbc_2014_1_", self.task_core.n_seed)
 
         print('adding ada feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            AdaBoostClassifier(base_estimator=None, n_estimators=300, learning_rate=1.0, algorithm='SAMME.R', random_state=None),
+            AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed),
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test_sessions,
             train_columns_2, test_columns_2,
-            "ada_2014_1_")
+            "ada_2014_1_", self.task_core.n_seed)
 
         # print('adding sgb feature 2...')
         # x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
@@ -369,7 +368,7 @@ class MakePredictionTask(Task):
         #     False,
         #     x_train_sessions, y_train_sessions, x_test_sessions,
         #     train_columns_2, test_columns_2,
-        #     "sgb_2014_1_")
+        #     "sgb_2014_1_", self.task_core.n_seed)
 
         print('Predicting all features...')
         print_columns(train_columns_2)

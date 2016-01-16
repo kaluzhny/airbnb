@@ -13,8 +13,16 @@ from tasks import TaskCore, CrossValidationScoreTask, MakePredictionTask
 from xgboost.sklearn import XGBClassifier
 from stdout_with_time import StdOutWithTime
 
-
 sys.stdout = StdOutWithTime(sys.stdout)
+
+n_threads = int(sys.argv[1])
+n_seed = int(sys.argv[2])
+submission_suffix = sys.argv[3]
+
+print('running script with parameters: ',
+      'n_threads - ', n_threads, '; ',
+      'n_seed - ', n_seed, '; ',
+      'submission_suffix - ' + submission_suffix)
 
 
 def run_airbnb(target):
@@ -25,16 +33,12 @@ def run_airbnb(target):
     data_dir = str(settings['competition-data-dir'])
     submission_dir = str(settings['submission-dir'])
 
-    classifier = XGBClassifier(objective='multi:softmax', max_depth=4, nthread=2, seed=0)
+    classifier = XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed)
     # (LogisticRegression(), 'lr'),
     # (XGBClassifier(objective='multi:softmax', max_depth=8, subsample=0.7, colsample_bytree=0.8, seed=0), 'air'),
-    # (XGBClassifier(objective='multi:softmax', nthread=2, seed=0), 'xg0'),
     # (XGBClassifier(objective='multi:softmax', nthread=2, max_depth=4, learning_rate=0.03, n_estimators=10, subsample=0.5, colsample_bytree=0.5, seed=0), 'xg3'),
-    # (XGBClassifier(nthread=2, max_depth=10, learning_rate=0.03, n_estimators=800, subsample=0.5,  seed=0), 'xg5'),
-    # (LogisticRegression(), 'lr'),
     # (RandomForestClassifier(n_estimators=100, min_samples_split=1, bootstrap=False, n_jobs=4, random_state=0), 'rf100mss1Bfrs0'),
     # (AdaBoostClassifier(base_estimator=None, n_estimators=50, learning_rate=1.0, algorithm='SAMME.R', random_state=None), 'ada'),
-    # (RandomForestClassifier(n_estimators=300, min_samples_split=1, bootstrap=False, n_jobs=4, random_state=0), 'rf300mss1Bfrs0'),
     # (AdaBoostClassifier(base_estimator=None, n_estimators=300, learning_rate=1.0, algorithm='SAMME.R', random_state=None), 'adaEst300'),
     # (SVC(C=1.0, kernel='rbf', degree=3, gamma=0.0, coef0=0.0, shrinking=True, probability=True, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None), 'svc'),
 
@@ -42,14 +46,17 @@ def run_airbnb(target):
     test_file = os.path.join(data_dir, 'test_users.csv')
     sessions_file = os.path.join(data_dir, 'sessions.csv')
 
-    submission_file = os.path.join(submission_dir, 'submission_simple_more_session_features_xg_etc_rf_ada_gbc_4.csv')
+    submission_file = os.path.join(
+        submission_dir,
+        'submission_simple_more_session_features_xg_etc_rf_ada_gbc_' + submission_suffix + '.csv')
 
     def do_cross_validation():
             print('===== Making cross-validation')
             scores = []
             for i in range(5):
                 task_core = TaskCore(data_file=train_file, sessions_data_file=sessions_file, test_data_file=test_file,
-                                     submission_file=submission_file, cv_ratio=0.5)
+                                     submission_file=submission_file, cv_ratio=0.5,
+                                     n_threads=n_threads, n_seed=n_seed)
                 data = CrossValidationScoreTask(task_core, classifier).run()
                 score = data['Score']
                 scores.append(score)
@@ -58,7 +65,8 @@ def run_airbnb(target):
 
     def make_prediction():
         task_core = TaskCore(data_file=train_file, sessions_data_file=sessions_file, test_data_file=test_file,
-                             submission_file=submission_file, cv_ratio=0.5)
+                             submission_file=submission_file, cv_ratio=0.5,
+                             n_threads=n_threads, n_seed=n_seed)
         MakePredictionTask(task_core, classifier).run()
 
     if target == 'cv':
