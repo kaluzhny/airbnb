@@ -3,7 +3,7 @@ from sklearn.base import clone
 from sklearn.cross_validation import StratifiedKFold
 from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
-from scores import ndcg5_eval
+
 
 n_folds = 4
 
