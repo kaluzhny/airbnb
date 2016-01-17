@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTr
     GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 
-from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
+from scores import ndcg_at_k, score, print_xgboost_scores
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
     divide_by_has_sessions, sync_columns, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
@@ -366,7 +366,7 @@ def convert_outputs_to_others(y, other_labels):
 def simple_predict(classifier, x_train, y_train, x_test, columns=None):
     print('x_train shape: ', x_train.shape)
     print('x_test shape: ', x_test.shape)
-    classifier.fit(x_train, y_train, eval_metric=ndcg5_eval) # 'ndcg@5')
+    classifier.fit(x_train, y_train, eval_metric='ndcg@5')
     print_xgboost_scores(classifier, columns)
     probabilities = classifier.predict_proba(x_test)
     return probabilities
