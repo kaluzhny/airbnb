@@ -33,7 +33,7 @@ def run_airbnb(target):
     data_dir = str(settings['competition-data-dir'])
     submission_dir = str(settings['submission-dir'])
 
-    classifier = XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed)
+    classifier = XGBClassifier(objective='multi:softmax', max_depth=6, nthread=n_threads, seed=n_seed)
     # (LogisticRegression(), 'lr'),
     # (XGBClassifier(objective='multi:softmax', max_depth=8, subsample=0.7, colsample_bytree=0.8, seed=0), 'air'),
     # (XGBClassifier(objective='multi:softmax', nthread=2, max_depth=4, learning_rate=0.03, n_estimators=10, subsample=0.5, colsample_bytree=0.5, seed=0), 'xg3'),
@@ -48,7 +48,7 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_simple_more_session_features_xg_etc_rf_ada_unique_devices_no_' +
+        'submission_simple_more_session_features_xg_etc_rf_ada_x2_' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():
