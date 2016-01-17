@@ -253,14 +253,14 @@ class MakePredictionTask(Task):
             train_columns, test_columns,
             "etc_2_", self.task_core.n_seed)
 
-        print('adding gbc feature 1...')
-        x_train, x_test, train_columns, test_columns = add_blend_feature(
-            GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
-            classes_count,
-            True,
-            x_train, y_train, x_test,
-            train_columns, test_columns,
-            "gbc_1_", self.task_core.n_seed)
+        # print('adding gbc feature 1...')
+        # x_train, x_test, train_columns, test_columns = add_blend_feature(
+        #     GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
+        #     classes_count,
+        #     True,
+        #     x_train, y_train, x_test,
+        #     train_columns, test_columns,
+        #     "gbc_1_", self.task_core.n_seed)
 
         print('adding ada feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
@@ -343,14 +343,14 @@ class MakePredictionTask(Task):
             train_columns_2, test_columns_2,
             "etc_2014_2_", self.task_core.n_seed)
 
-        print('adding gbc feature 2...')
-        x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
-            classes_count,
-            False,
-            x_train_sessions, y_train_sessions, x_test_sessions,
-            train_columns_2, test_columns_2,
-            "gbc_2014_1_", self.task_core.n_seed)
+        # print('adding gbc feature 2...')
+        # x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
+        #     GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
+        #     classes_count,
+        #     False,
+        #     x_train_sessions, y_train_sessions, x_test_sessions,
+        #     train_columns_2, test_columns_2,
+        #     "gbc_2014_1_", self.task_core.n_seed)
 
         print('adding ada feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
