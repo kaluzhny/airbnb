@@ -183,6 +183,17 @@ def sessions_has_column_feature(data_df, sessions_df, column, feature):
     return df_action_type_counts['count']
 
 
+def session_unique_devices_count(data_df, sessions_df):
+    df_sessions_devices = sessions_df[['user_id', 'device_type']]
+    df_sessions_devices = df_sessions_devices.groupby(['user_id'])['device_type'].nunique().reset_index()
+    df_sessions_devices.columns=['id', 'count']
+    df_sessions_devices_counts = pd.merge(data_df, df_sessions_devices, on='id', how='left')[[
+        'id', 'count', 's_count_all']]
+    df_sessions_devices_counts['count'] = df_sessions_devices_counts.apply(
+        lambda r : r['count'] if not math.isnan(r['count']) else (-1 if r['s_count_all'] == -1 else 0), axis=1)
+    return df_sessions_devices_counts['count']
+
+
 def sessions_has_action_detail(data_df, sessions_df, action_detail):
     return sessions_has_column_feature(data_df, sessions_df, 'action_detail', action_detail)
 
@@ -204,6 +215,8 @@ def add_sessions_features(data_df, sessions_df):
     data_df = pd.merge(data_df, sessions_actions_count_df, on='id', how='left')
     data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else -1, axis=1)
     #return data_df
+
+    data_df['s_unique_devices'] = session_unique_devices_count(data_df, sessions_df)
 
     data_df['s_has_action_show'] = sessions_has_action(data_df, sessions_df, 'show')
     data_df['s_has_action_index'] = sessions_has_action(data_df, sessions_df, 'index')

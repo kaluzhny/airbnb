@@ -44,7 +44,7 @@ def x_from_df(data_df, sessions_df, is_test, test_columns=None):
 
 
 def load_sessions(path):
-    return pd.read_csv(path, usecols=['user_id', 'action', 'action_type', 'action_detail'])
+    return pd.read_csv(path, usecols=['user_id', 'action', 'action_type', 'action_detail', 'device_type'])
 
 
 class Task(object):
@@ -277,15 +277,15 @@ class MakePredictionTask(Task):
         train_columns_2 = train_columns
         test_columns_2 = test_columns
 
-        print('adding xgboost feature 2...')
-        x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-            XGBClassifier(objective='multi:softmax', max_depth=4,
-                          nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
-            classes_count,
-            False,
-            x_train_sessions, y_train_sessions, x_test_sessions,
-            train_columns_2, test_columns_2,
-            "xg_2014_", self.task_core.n_seed)
+        # print('adding xgboost feature 2...')
+        # x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
+        #     XGBClassifier(objective='multi:softmax', max_depth=4,
+        #                   nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
+        #     classes_count,
+        #     False,
+        #     x_train_sessions, y_train_sessions, x_test_sessions,
+        #     train_columns_2, test_columns_2,
+        #     "xg_2014_", self.task_core.n_seed)
 
         print('adding rfc feature 2...')
         x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
