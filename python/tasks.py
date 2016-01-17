@@ -65,7 +65,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                , max_rows=10000
+                                #, max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, False, test_columns=self.test_columns)
 
@@ -85,7 +85,7 @@ class TestDataTask(Task):
 
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                , max_rows=10000
+                                #, max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, True)
 
