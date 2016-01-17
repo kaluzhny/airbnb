@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTr
     GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 
-from scores import ndcg_at_k, score, print_xgboost_scores
+from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
     divide_by_has_sessions, sync_columns, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
@@ -65,7 +65,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                , max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, False, test_columns=self.test_columns)
 
@@ -85,7 +85,7 @@ class TestDataTask(Task):
 
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                , max_rows=10000
                                 )
         x, columns = x_from_df(data_df, sessions_df, True)
 
@@ -253,15 +253,6 @@ class MakePredictionTask(Task):
             train_columns, test_columns,
             "etc_2_", self.task_core.n_seed)
 
-        # print('adding gbc feature 1...')
-        # x_train, x_test, train_columns, test_columns = add_blend_feature(
-        #     GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     True,
-        #     x_train, y_train, x_test,
-        #     train_columns, test_columns,
-        #     "gbc_1_", self.task_core.n_seed)
-
         print('adding ada feature 1...')
         x_train, x_test, train_columns, test_columns = add_blend_feature(
             AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed),
@@ -270,15 +261,6 @@ class MakePredictionTask(Task):
             x_train, y_train, x_test,
             train_columns, test_columns,
             "ada_1_", self.task_core.n_seed)
-
-        # print('adding sgb feature 1...')
-        # x_train, x_test, train_columns, test_columns = add_blend_feature(
-        #     SGDClassifier(n_jobs=2),
-        #     classes_count,
-        #     True,
-        #     x_train, y_train, x_test,
-        #     train_columns, test_columns,
-        #     "sgd_1_", self.task_core.n_seed)
 
         print('x_train: ', x_train.shape)
         print('x_test: ', x_test.shape)
@@ -361,15 +343,6 @@ class MakePredictionTask(Task):
             train_columns_2, test_columns_2,
             "ada_2014_1_", self.task_core.n_seed)
 
-        # print('adding sgb feature 2...')
-        # x_train_sessions, x_test_sessions, train_columns_2, test_columns_2 = add_blend_feature(
-        #     SGDClassifier(n_jobs=2),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test_sessions,
-        #     train_columns_2, test_columns_2,
-        #     "sgb_2014_1_", self.task_core.n_seed)
-
         print('Predicting all features...')
         print_columns(train_columns_2)
         probabilities = simple_predict(clone(self.classifier), x_train_sessions,
@@ -390,13 +363,10 @@ def convert_outputs_to_others(y, other_labels):
     return np.vectorize(convert_func)(y)
 
 
-
-
-
 def simple_predict(classifier, x_train, y_train, x_test, columns=None):
     print('x_train shape: ', x_train.shape)
     print('x_test shape: ', x_test.shape)
-    classifier.fit(x_train, y_train, eval_metric='ndcg@5')
+    classifier.fit(x_train, y_train, eval_metric=ndcg5_eval) # 'ndcg@5')
     print_xgboost_scores(classifier, columns)
     probabilities = classifier.predict_proba(x_test)
     return probabilities

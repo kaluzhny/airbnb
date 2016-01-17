@@ -284,7 +284,6 @@ def add_sessions_features(data_df, sessions_df):
     data_df['s_has_action_open_graph_setting'] = sessions_has_action(data_df, sessions_df, 'open_graph_setting')
     data_df['s_has_action_set_user'] = sessions_has_action(data_df, sessions_df, 'set_user')
     data_df['s_has_action_faq_category'] = sessions_has_action(data_df, sessions_df, 'faq_category')
-
     data_df['s_has_action_apply_coupon_click'] = sessions_has_action(data_df, sessions_df, 'apply_coupon_click')
     data_df['s_has_action_reviews_new'] = sessions_has_action(data_df, sessions_df, 'reviews_new')
     data_df['s_has_action_apply_coupon_error'] = sessions_has_action(data_df, sessions_df, 'apply_coupon_error')
@@ -325,7 +324,6 @@ def add_sessions_features(data_df, sessions_df):
     data_df['s_has_action_transaction_history'] = sessions_has_action(data_df, sessions_df, 'transaction_history')
     data_df['s_has_action_phone_verification_success'] = sessions_has_action(data_df, sessions_df, 'phone_verification_success')
     data_df['s_has_action_login_modal'] = sessions_has_action(data_df, sessions_df, 'login_modal')
-
 
     data_df['s_has_view'] = sessions_has_action_type(data_df, sessions_df, 'view')
     data_df['s_has_data'] = sessions_has_action_type(data_df, sessions_df, 'data')

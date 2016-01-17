@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn.base import clone
 from sklearn.cross_validation import StratifiedKFold
+from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
+from scores import ndcg5_eval
 
 n_folds = 4
 
@@ -60,7 +62,12 @@ def train_blend_feature(classifier, x, y, classes_count, random_state):
         x_blend_train = x[train_idx]
         y_blend_train = y[train_idx]
         x_blend_test = x[test_idx]
-        no_sessions_classifiers[i].fit(x_blend_train, y_blend_train)
+
+        classifier = no_sessions_classifiers[i]
+        if isinstance(classifier, XGBClassifier):
+            classifier.fit(x_blend_train, y_blend_train, eval_metric=ndcg5_eval)
+        else:
+            classifier.fit(x_blend_train, y_blend_train)
         y_blend_predicted = no_sessions_classifiers[i].predict_proba(x_blend_test)
         blend_train[test_idx, :classes_count] = y_blend_predicted
     print('blend_train shape: ', blend_train.shape)
