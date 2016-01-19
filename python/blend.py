@@ -3,51 +3,30 @@ from sklearn.base import clone
 from sklearn.cross_validation import StratifiedKFold
 from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
+from dataset import DataSet
 
 
-n_folds = 4
+n_folds = 2
 
 
 def add_blend_feature(classifier, classes_count, remove_session_features,
-                      x_train, y_train, x_test, train_columns, test_columns, feature_prefix,
+                      x_train, y_train, x_test, feature_prefix,
                       random_state):
-    # to_others = ['PT', 'AU', 'NL', 'DE', 'CA', 'ES', 'GB']
-    # y_train = convert_outputs_to_others(y_train, to_others)
-    #classes_count = len(le_.classes_) - len(to_others)
-
-    no_sessions_classifiers, blend_train_no_session_feature = train_blend_no_session_feature(
-        classifier, remove_session_features, x_train, y_train, train_columns, classes_count, random_state)
-
-    x_train = np.hstack((x_train, blend_train_no_session_feature))
 
     if remove_session_features:
-        x_test_no_sessions_features = remove_sessions_columns(x_test, train_columns)
-    else:
-        x_test_no_sessions_features = x_test
+        x_train = remove_sessions_columns(x_train)
+        x_test = remove_sessions_columns(x_test)
 
-    blend_test_no_sessions = predict_blend_feature(x_test_no_sessions_features,
-                                                   no_sessions_classifiers, classes_count)
-    x_test = np.hstack((x_test, blend_test_no_sessions))
+    classifiers, blend_feature_train = train_blend_feature(classifier, x_train.data_, y_train, classes_count, random_state)
+    blend_feature_test = predict_blend_feature(x_test.data_, classifiers, classes_count)
 
-    for i in range(classes_count):
-        feature_name = feature_prefix + str(i)
-        train_columns = np.append(train_columns, [feature_name])
-        test_columns = np.append(test_columns, [feature_name])
+    x_train_data = np.hstack((x_train.data_, blend_feature_train))
+    x_test_data = np.hstack((x_test.data_, blend_feature_test))
 
-    return x_train, x_test, train_columns, test_columns
+    assert(x_train.columns_ == x_test.columns_)
+    new_columns = x_train.columns_ + [feature_prefix + str(i) for i in range(classes_count)]
 
-
-def train_blend_no_session_feature(classifier, remove_session_features,
-                                   x_train, y_train, train_columns, classes_count,
-                                   random_state):
-    if remove_session_features:
-        x_train_no_sessions_only_features = remove_sessions_columns(x_train, train_columns)
-    else:
-        x_train_no_sessions_only_features = x_train
-
-    no_sessions_classifiers, blend_train_no_session_feature = train_blend_feature(
-        classifier, x_train_no_sessions_only_features, y_train, classes_count, random_state)
-    return no_sessions_classifiers, blend_train_no_session_feature
+    return DataSet(x_train.ids_, new_columns, x_train_data), DataSet(x_test.ids_, new_columns, x_test_data)
 
 
 def train_blend_feature(classifier, x, y, classes_count, random_state):
@@ -80,4 +59,3 @@ def predict_blend_feature(x, classifiers, classes_count):
     for i in range(n_folds):
         blend_test_all[:, i, :] = classifiers[i].predict_proba(x)
     return blend_test_all.mean(1)
-

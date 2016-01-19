@@ -3,6 +3,7 @@ import pandas as pd
 import math
 from datetime import date
 from sklearn.decomposition import PCA
+from dataset import DataSet
 
 
 def gender_idx(gender):
@@ -31,24 +32,6 @@ def make_one_hot(df, feature, values=None, test_columns=None, use_threshold=Fals
     dummy_df = pd.get_dummies(df[feature], prefix=feature)
     if values is not None:
         dummy_df = dummy_df[[feature + '_' + value for value in values]]
-
-    if test_columns is not None:
-        columns_to_drop = []
-        for column in list(dummy_df.columns.values):
-            if column not in test_columns:
-                columns_to_drop.append(column)
-        dummy_df = dummy_df.drop(columns_to_drop, axis=1)
-
-    # if use_threshold:
-    #    threshold = 0.001
-    #    n_rows = len(dummy_df.index)
-    #    rare_columns = []
-    #    for column in list(dummy_df.columns.values):
-    #        val_count = len(dummy_df[dummy_df[column] == 1].index)
-    #        if threshold * n_rows > val_count:
-    #            rare_columns.append(column)
-    #    dummy_df = dummy_df.drop(rare_columns, axis=1)
-
     return pd.concat((df, dummy_df), axis=1)
 
 
@@ -71,12 +54,9 @@ def do_pca(x):
     return pca
 
 
-def remove_sessions_columns(x, columns):
-    new_columns_idx = []
-    for i, column in enumerate(columns):
-        if not column.startswith('s_'):
-            new_columns_idx.append(i)
-    return x[:, new_columns_idx]
+def remove_sessions_columns(x):
+    new_columns = [column for column in x.columns_ if not column.startswith('s_')]
+    return x.filter_columns(new_columns)
 
 
 def remove_no_sessions_columns(x, columns):
@@ -87,33 +67,36 @@ def remove_no_sessions_columns(x, columns):
     return x[:, new_columns_idx]
 
 
-def divide_by_has_sessions(count_all_col_idx, x, y):
-    rows_filter_sessions = (x[:, count_all_col_idx] == 2014)
-    rows_filter_no_sessions = (x[:, count_all_col_idx] != 2014)
+def divide_by_has_sessions(x, y):
+    count_all_col_idx = list(x.columns_).index('year_first_active')
+    x_ids = x.ids_
+    x_data = x.data_
 
-    x_sessions = x[rows_filter_sessions, :]
-    x_no_sessions = x[rows_filter_no_sessions, :]
-    if y is None: return x_sessions, x_no_sessions
+    rows_filter_sessions = (x_data[:, count_all_col_idx] == 2014)
+    rows_filter_no_sessions = (x_data[:, count_all_col_idx] != 2014)
+
+    x_ids_sessions = [x_ids[i] for i, f in enumerate(rows_filter_sessions) if f]
+    x_data_sessions = x_data[rows_filter_sessions, :]
+    x_sessions = DataSet(x_ids_sessions, x.columns_, x_data_sessions)
+
+    x_ids_no_sessions = [x_ids[i] for i, f in enumerate(rows_filter_no_sessions) if f]
+    x_data_no_sessions = x_data[rows_filter_no_sessions, :]
+    x_no_sessions = DataSet(x_ids_no_sessions, x.columns_, x_data_no_sessions)
+
+    if y is None:
+        return x_sessions, x_no_sessions
 
     y_sessions = y[rows_filter_sessions, ]
     y_no_sessions = y[rows_filter_no_sessions, ]
     return x_sessions, y_sessions, x_no_sessions, y_no_sessions
 
 
-def sync_columns(x, x_columns, no_remove_columns):
-    x = np.copy(x)
-    test_columns_indices_to_remove = []
-    new_columns = []
-    for i, column in enumerate(x_columns):
-        if column not in no_remove_columns:
-            test_columns_indices_to_remove.append(i)
-        else:
-            new_columns.append(column)
-    x = np.delete(x, test_columns_indices_to_remove, 1)
-    return x, new_columns
+def sync_columns(x_1, x_2):
+    columns = list(set(x_1.columns_) & set(x_2.columns_))
+    return x_1.filter_columns(columns), x_2.filter_columns(columns)
 
 
-def add_features(data_df, test_columns):
+def add_features(data_df):
     print('add_features <<')
     data_df = data_df.copy()
 
@@ -145,16 +128,16 @@ def add_features(data_df, test_columns):
         lambda r: 12 * r['month_first_active'] + r['day_first_active'], axis=1)
     # data_df = data_df.drop(['year_account_created', 'year_first_active'], axis=1)
 
-    data_df = make_one_hot(data_df, 'language', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'gender', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'first_device_type', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'affiliate_channel', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'affiliate_provider', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'first_affiliate_tracked', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'signup_app', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'signup_method', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'first_browser', test_columns=test_columns)
-    data_df = make_one_hot(data_df, 'signup_flow', test_columns=test_columns)
+    data_df = make_one_hot(data_df, 'language')
+    data_df = make_one_hot(data_df, 'gender')
+    data_df = make_one_hot(data_df, 'first_device_type')
+    data_df = make_one_hot(data_df, 'affiliate_channel')
+    data_df = make_one_hot(data_df, 'affiliate_provider')
+    data_df = make_one_hot(data_df, 'first_affiliate_tracked')
+    data_df = make_one_hot(data_df, 'signup_app')
+    data_df = make_one_hot(data_df, 'signup_method')
+    data_df = make_one_hot(data_df, 'first_browser')
+    data_df = make_one_hot(data_df, 'signup_flow')
 
     drop_columns = ['date_account_created', 'timestamp_first_active', 'date_first_booking', 'gender', 'age',
                     'signup_method', 'language', 'affiliate_channel', 'affiliate_provider',
@@ -214,7 +197,7 @@ def add_sessions_features(data_df, sessions_df):
     sessions_actions_count_df.columns=['id', 's_count_all']
     data_df = pd.merge(data_df, sessions_actions_count_df, on='id', how='left')
     data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else -1, axis=1)
-    #return data_df
+    # return data_df
 
     data_df['s_unique_devices'] = session_unique_devices_count(data_df, sessions_df)
 
