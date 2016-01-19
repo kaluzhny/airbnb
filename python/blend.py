@@ -5,28 +5,42 @@ from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
 from dataset import DataSet
 
+n_folds = 4
 
-n_folds = 2
 
-
-def add_blend_feature(classifier, classes_count, remove_session_features,
+def get_blend_feature(classifier, classes_count,
                       x_train, y_train, x_test, feature_prefix,
                       random_state):
+    assert(x_train.columns_ == x_test.columns_)
+
+    classifiers, feature_train_data = train_blend_feature(classifier, x_train.data_, y_train, classes_count, random_state)
+    feature_test_data = predict_blend_feature(x_test.data_, classifiers, classes_count)
+    new_columns = [feature_prefix + str(i) for i in range(classes_count)]
+
+    return DataSet(x_train.ids_, new_columns, feature_train_data),\
+           DataSet(x_test.ids_, new_columns, feature_test_data)
+
+
+def add_blend_feature(classifiers, classes_count, remove_session_features,
+                      x_train, y_train, x_test, random_state):
+
+    x_train_featured = x_train
+    x_test_featured = x_test
 
     if remove_session_features:
         x_train = remove_sessions_columns(x_train)
         x_test = remove_sessions_columns(x_test)
 
-    classifiers, blend_feature_train = train_blend_feature(classifier, x_train.data_, y_train, classes_count, random_state)
-    blend_feature_test = predict_blend_feature(x_test.data_, classifiers, classes_count)
+    for classifier, classifier_name in classifiers:
+        print('adding feature with classifier ' + classifier_name + ' ...')
+        feature_prefix = classifier_name + '_'
+        feature_train, feature_test = get_blend_feature(classifier, classes_count,
+                                                        x_train, y_train, x_test, feature_prefix,
+                                                        random_state)
+        x_train_featured = x_train_featured.append_horizontal(feature_train)
+        x_test_featured = x_test_featured.append_horizontal(feature_test)
 
-    x_train_data = np.hstack((x_train.data_, blend_feature_train))
-    x_test_data = np.hstack((x_test.data_, blend_feature_test))
-
-    assert(x_train.columns_ == x_test.columns_)
-    new_columns = x_train.columns_ + [feature_prefix + str(i) for i in range(classes_count)]
-
-    return DataSet(x_train.ids_, new_columns, x_train_data), DataSet(x_test.ids_, new_columns, x_test_data)
+    return x_train_featured, x_test_featured
 
 
 def train_blend_feature(classifier, x, y, classes_count, random_state):

@@ -57,7 +57,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                , max_rows=10000
+                                #, max_rows=10000
                                 )
         x = ds_from_df(data_df, sessions_df, False)
         labels = data_df['country_destination'].values
@@ -74,7 +74,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                , max_rows=10000
+                                #, max_rows=10000
                                 )
         x = ds_from_df(data_df, sessions_df, True)
         return x
@@ -187,40 +187,22 @@ class MakePredictionTask(Task):
         print('printing train_columns/test_columns')
         print_columns(x_train.columns_)
 
-        print('adding xgboost feature 1...')
+        classifiers_no_session = [
+            (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=self.task_core.n_threads,
+                           seed=self.task_core.n_seed), 'xg_1'),
+            (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=self.task_core.n_threads,
+                                    random_state=self.task_core.n_seed), 'rfc_1'),
+            (ExtraTreesClassifier(n_estimators=100, criterion='gini',
+                                  n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed), 'etc_1'),
+            (AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed), 'ada_1')
+
+        ]
         x_train, x_test = add_blend_feature(
-            XGBClassifier(objective='multi:softmax', max_depth=4,
-                          nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
+            classifiers_no_session,
             classes_count,
             True,
             x_train, y_train, x_test,
-            "xg_1_", self.task_core.n_seed)
-
-        print('adding rfc feature 1...')
-        x_train, x_test = add_blend_feature(
-           RandomForestClassifier(n_estimators=100, criterion='gini',
-                                  n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-           classes_count,
-           True,
-           x_train, y_train, x_test,
-           "rfc_1_", self.task_core.n_seed)
-
-        print('adding etc feature 1...')
-        x_train, x_test = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, criterion='gini',
-                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-            classes_count,
-            True,
-            x_train, y_train, x_test,
-            "etc_1_", self.task_core.n_seed)
-
-        print('adding ada feature 1...')
-        x_train, x_test = add_blend_feature(
-            AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed),
-            classes_count,
-            True,
-            x_train, y_train, x_test,
-            "ada_1_", self.task_core.n_seed)
+            self.task_core.n_seed)
 
         print('x_train: ', x_train.data_.shape)
         print('x_test: ', x_test.data_.shape)
@@ -231,31 +213,19 @@ class MakePredictionTask(Task):
         print('x_train_sessions: ', x_train_sessions.data_.shape)
         print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
-        print('adding rfc feature 2...')
+        classifiers_session = [
+            (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=self.task_core.n_threads,
+                                    random_state=self.task_core.n_seed), 'rfc_2014_1'),
+            (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=self.task_core.n_threads,
+                                  random_state=self.task_core.n_seed), 'etc_2014_1'),
+            (AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed), 'ada_2014_1')
+        ]
         x_train_sessions, x_test = add_blend_feature(
-            RandomForestClassifier(n_estimators=100, criterion='gini',
-                                   n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
+            classifiers_session,
             classes_count,
             False,
             x_train_sessions, y_train_sessions, x_test,
-            "rfc_2014_1_", self.task_core.n_seed)
-
-        print('adding etc feature 2...')
-        x_train_sessions, x_test = add_blend_feature(
-            ExtraTreesClassifier(n_estimators=100, criterion='gini',
-                                 n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-            classes_count,
-            False,
-            x_train_sessions, y_train_sessions, x_test,
-            "etc_2014_1_", self.task_core.n_seed)
-
-        print('adding ada feature 2...')
-        x_train_sessions, x_test = add_blend_feature(
-            AdaBoostClassifier(n_estimators=300, random_state=self.task_core.n_seed),
-            classes_count,
-            False,
-            x_train_sessions, y_train_sessions, x_test,
-            "ada_2014_1_", self.task_core.n_seed)
+            self.task_core.n_seed)
 
         print('Predicting all features...')
         print_columns(x_train_sessions.columns_)

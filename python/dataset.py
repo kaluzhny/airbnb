@@ -1,3 +1,5 @@
+import numpy as np
+
 
 class DataSet(object):
 
@@ -19,3 +21,8 @@ class DataSet(object):
     def filter_columns(self, columns):
         idxs = [self.columns_.index(col) for col in columns]
         return DataSet(self.ids_, columns, self.data_[:, idxs])
+
+    def append_horizontal(self, right):
+        assert(self.ids_ == right.ids_)
+        return DataSet(self.ids_, self.columns_ + right.columns_,
+                       np.hstack((self.data_, right.data_)))
