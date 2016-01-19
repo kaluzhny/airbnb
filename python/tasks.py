@@ -187,14 +187,6 @@ class MakePredictionTask(Task):
         print('printing train_columns/test_columns')
         print_columns(x_train.columns_)
 
-        # print('adding lr feature 1...')
-        # x_train, x_test = add_blend_feature(
-        #     LogisticRegression(random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     True,
-        #     x_train, y_train, x_test,
-        #     "lr_1_", self.task_core.n_seed)
-
         print('adding xgboost feature 1...')
         x_train, x_test = add_blend_feature(
             XGBClassifier(objective='multi:softmax', max_depth=4,
@@ -212,13 +204,6 @@ class MakePredictionTask(Task):
            True,
            x_train, y_train, x_test,
            "rfc_1_", self.task_core.n_seed)
-        # x_train, x_test = add_blend_feature(
-        #    RandomForestClassifier(n_estimators=100, criterion='entropy',
-        #                           n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-        #    classes_count,
-        #    True,
-        #    x_train, y_train, x_test,
-        #    "rfc_2_", self.task_core.n_seed)
 
         print('adding etc feature 1...')
         x_train, x_test = add_blend_feature(
@@ -228,13 +213,6 @@ class MakePredictionTask(Task):
             True,
             x_train, y_train, x_test,
             "etc_1_", self.task_core.n_seed)
-        # x_train, x_test = add_blend_feature(
-        #     ExtraTreesClassifier(n_estimators=100, criterion='entropy',
-        #                          n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     True,
-        #     x_train, y_train, x_test,
-        #     "etc_2_", self.task_core.n_seed)
 
         print('adding ada feature 1...')
         x_train, x_test = add_blend_feature(
@@ -253,23 +231,6 @@ class MakePredictionTask(Task):
         print('x_train_sessions: ', x_train_sessions.data_.shape)
         print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
-        # print('adding xgboost feature 2...')
-        # x_train_sessions, x_test = add_blend_feature(
-        #     XGBClassifier(objective='multi:softmax', max_depth=4,
-        #                   nthread=self.task_core.n_threads, seed=self.task_core.n_seed),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test,
-        #     "xg_2014_", self.task_core.n_seed)
-
-        # print('adding lr feature 2...')
-        # x_train_sessions, x_test = add_blend_feature(
-        #     LogisticRegression(random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test,
-        #     "lr_2014_1_", self.task_core.n_seed)
-
         print('adding rfc feature 2...')
         x_train_sessions, x_test = add_blend_feature(
             RandomForestClassifier(n_estimators=100, criterion='gini',
@@ -279,14 +240,6 @@ class MakePredictionTask(Task):
             x_train_sessions, y_train_sessions, x_test,
             "rfc_2014_1_", self.task_core.n_seed)
 
-        # x_train_sessions, x_test = add_blend_feature(
-        #     RandomForestClassifier(n_estimators=100, criterion='entropy',
-        #                            n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test,
-        #     "rfc_2014_2_", self.task_core.n_seed)
-
         print('adding etc feature 2...')
         x_train_sessions, x_test = add_blend_feature(
             ExtraTreesClassifier(n_estimators=100, criterion='gini',
@@ -295,22 +248,6 @@ class MakePredictionTask(Task):
             False,
             x_train_sessions, y_train_sessions, x_test,
             "etc_2014_1_", self.task_core.n_seed)
-
-        # x_train_sessions, x_test = add_blend_feature(
-        #     ExtraTreesClassifier(n_estimators=100, criterion='entropy',
-        #                          n_jobs=self.task_core.n_threads, random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test,
-        #     "etc_2014_2_", self.task_core.n_seed)
-
-        # print('adding gbc feature 2...')
-        # x_train_sessions, x_test = add_blend_feature(
-        #     GradientBoostingClassifier(max_depth=4, n_estimators=50, random_state=self.task_core.n_seed),
-        #     classes_count,
-        #     False,
-        #     x_train_sessions, y_train_sessions, x_test,
-        #     "gbc_2014_1_", self.task_core.n_seed)
 
         print('adding ada feature 2...')
         x_train_sessions, x_test = add_blend_feature(
@@ -322,8 +259,7 @@ class MakePredictionTask(Task):
 
         print('Predicting all features...')
         print_columns(x_train_sessions.columns_)
-        probabilities = simple_predict(clone(self.classifier), x_train_sessions,
-                                       y_train_sessions, x_test)
+        probabilities = simple_predict(clone(self.classifier), x_train_sessions, y_train_sessions, x_test)
         print_probabilities(probabilities)
 
         save_submission(x_test.ids_, probabilities, self.task_core.submission_file)
