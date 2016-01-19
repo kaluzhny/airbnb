@@ -110,12 +110,12 @@ def add_features(data_df):
     # data_df['age_imp_mean'] = data_df.apply(
     #    lambda r: r['age'] if (np.isfinite(r['age']) & (r['age'] >= 16) & (r['age'] < 80)) else mean_age, axis=1)
 
-    data_df['day_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[2]), axis=1)
-    data_df['month_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[1]), axis=1)
-    data_df['year_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[0]), axis=1)
-    data_df['day_of_week'] = data_df.apply(lambda r: str_to_date(r['date_account_created']).weekday(), axis=1)
-    data_df['day_of_year'] = data_df.apply(lambda r: 12 * r['month_account_created'] + r['day_account_created'], axis=1)
-    data_df = data_df.drop(['day_account_created', 'month_account_created'], axis=1)
+    # data_df['day_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[2]), axis=1)
+    # data_df['month_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[1]), axis=1)
+    # data_df['year_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[0]), axis=1)
+    # data_df['day_of_week'] = data_df.apply(lambda r: str_to_date(r['date_account_created']).weekday(), axis=1)
+    # data_df['day_of_year'] = data_df.apply(lambda r: 12 * r['month_account_created'] + r['day_account_created'], axis=1)
+    # data_df = data_df.drop(['day_account_created', 'month_account_created'], axis=1)
 
     data_df['day_first_active'] = data_df.apply(lambda r: int(str(r['timestamp_first_active'])[6:8]), axis=1)
     data_df['month_first_active'] = data_df.apply(lambda r: int(str(r['timestamp_first_active'])[4:6]), axis=1)
