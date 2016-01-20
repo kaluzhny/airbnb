@@ -12,7 +12,7 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier
 
 from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
-    divide_by_has_sessions, sync_columns, add_sessions_features, print_columns, add_features
+    divide_by_has_sessions, sync_columns, sync_columns_2, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
 from blend import add_blend_feature, train_blend_feature, predict_blend_feature
 from dataset import DataSet
@@ -57,7 +57,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                # , max_rows=10000
                                 )
         x = ds_from_df(data_df, sessions_df, False)
         labels = data_df['country_destination'].values
@@ -74,7 +74,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                # , max_rows=10000
                                 )
         x = ds_from_df(data_df, sessions_df, True)
         return x
@@ -181,7 +181,7 @@ class MakePredictionTask(Task):
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
 
-        x_test, x_train = sync_columns(x_test, x_train)
+        x_test, x_train = sync_columns_2(x_test, x_train)
         assert(x_train.columns_ == x_test.columns_)
 
         print('printing train_columns/test_columns')

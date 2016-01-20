@@ -19,8 +19,15 @@ class DataSet(object):
         self.data_ = data
 
     def filter_columns(self, columns):
-        idxs = [self.columns_.index(col) for col in columns]
-        return DataSet(self.ids_, columns, self.data_[:, idxs])
+        data = np.zeros((len(self.ids_), len(columns)))
+        for i, col in enumerate(columns):
+            try:
+                idx = self.columns_.index(col)
+                data[:, i] = self.data_[:, idx]
+            except ValueError:
+                pass
+
+        return DataSet(self.ids_, columns, data)
 
     def append_horizontal(self, right):
         assert(self.ids_ == right.ids_)
