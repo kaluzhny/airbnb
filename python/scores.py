@@ -50,7 +50,7 @@ def print_xgboost_scores(classifier, columns=None):
                 f_idx = int(f_label[1:])
                 indices.append(f_idx)
                 print(columns[f_idx] + ": " + str(f_score))
-            print('Not used features: ')
-            for idx, column in enumerate(columns):
-                if idx not in indices:
-                    print(column)
+            # print('Not used features: ')
+            # for idx, column in enumerate(columns):
+            #     if idx not in indices:
+            #         print(column)

@@ -39,7 +39,6 @@ def run_airbnb(target):
     # (XGBClassifier(objective='multi:softmax', nthread=2, max_depth=4, learning_rate=0.03, n_estimators=10, subsample=0.5, colsample_bytree=0.5, seed=0), 'xg3'),
     # (RandomForestClassifier(n_estimators=100, min_samples_split=1, bootstrap=False, n_jobs=4, random_state=0), 'rf100mss1Bfrs0'),
     # (AdaBoostClassifier(base_estimator=None, n_estimators=50, learning_rate=1.0, algorithm='SAMME.R', random_state=None), 'ada'),
-    # (AdaBoostClassifier(base_estimator=None, n_estimators=300, learning_rate=1.0, algorithm='SAMME.R', random_state=None), 'adaEst300'),
     # (SVC(C=1.0, kernel='rbf', degree=3, gamma=0.0, coef0=0.0, shrinking=True, probability=True, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, random_state=None), 'svc'),
 
     train_file = os.path.join(data_dir, 'train_users.csv')
@@ -48,7 +47,7 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_simple_more_session_features_new_blend_noacr_ce_new_sync_' +
+        'submission_simple_more_session_features_new_blend_noacr_ce_new_sync_knn_' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():

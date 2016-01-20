@@ -4,7 +4,7 @@ from sklearn.cross_validation import StratifiedKFold
 from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
 from dataset import DataSet
-from scores import ndcg5_eval
+from scores import ndcg5_eval, print_xgboost_scores
 
 n_folds = 4
 
@@ -74,3 +74,14 @@ def predict_blend_feature(x, classifiers, classes_count):
     for i in range(n_folds):
         blend_test_all[:, i, :] = classifiers[i].predict_proba(x)
     return blend_test_all.mean(1)
+
+def simple_predict(classifier, x_train, y_train, x_test):
+    x_train_data = x_train.data_
+    x_test_data = x_test.data_
+    print('x_train shape: ', x_train_data.shape)
+    print('x_test shape: ', x_test_data.shape)
+
+    classifier.fit(x_train_data, y_train, eval_metric='ndcg@5')
+    print_xgboost_scores(classifier, x_train.columns_)
+    probabilities = classifier.predict_proba(x_test_data)
+    return probabilities

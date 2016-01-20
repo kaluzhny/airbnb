@@ -29,6 +29,10 @@ class DataSet(object):
 
         return DataSet(self.ids_, columns, data)
 
+    def filter_rows(self, idxs):
+        ids = [self.ids_[idx] for idx in idxs]
+        return DataSet(ids, self.columns_, self.data_[idxs,:])
+
     def append_horizontal(self, right):
         assert(self.ids_ == right.ids_)
         return DataSet(self.ids_, self.columns_ + right.columns_,
