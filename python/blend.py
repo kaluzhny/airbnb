@@ -4,6 +4,7 @@ from sklearn.cross_validation import StratifiedKFold
 from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
 from dataset import DataSet
+from scores import ndcg5_eval
 
 n_folds = 4
 
@@ -58,7 +59,7 @@ def train_blend_feature(classifier, x, y, classes_count, random_state):
 
         classifier = no_sessions_classifiers[i]
         if isinstance(classifier, XGBClassifier):
-            classifier.fit(x_blend_train, y_blend_train, eval_metric='ndcg@5')
+            classifier.fit(x_blend_train, y_blend_train, eval_metric=ndcg5_eval) # 'ndcg@5')
         else:
             classifier.fit(x_blend_train, y_blend_train)
         y_blend_predicted = no_sessions_classifiers[i].predict_proba(x_blend_test)

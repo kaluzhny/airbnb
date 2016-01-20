@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTr
     GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 
-from scores import ndcg_at_k, score, print_xgboost_scores
+from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
     divide_by_has_sessions, sync_columns, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
@@ -137,7 +137,7 @@ class CrossValidationScoreTask(Task):
         print('x_sessions_train shape: ', x_sessions_train.shape)
 
         print('Training aggregate classifier...')
-        self.classifier.fit(x_sessions_train, y_sessions_train, eval_metric='ndcg@5')
+        self.classifier.fit(x_sessions_train, y_sessions_train, eval_metric=ndcg5_eval) # 'ndcg@5')
         print_xgboost_scores(self.classifier)
 
         print('Predicting no session feature for test')

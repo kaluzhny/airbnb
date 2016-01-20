@@ -13,6 +13,16 @@ def ndcg_at_k(r, k=5):
     return dcg_at_k(r, k) / dcg_max
 
 
+def ndcg5_eval(predictions, true_values):
+    labels = true_values.get_label()
+    top = []
+    for i in range(predictions.shape[0]):
+        top.append(np.argsort(predictions[i])[::-1][:5])
+    mat = np.reshape(np.repeat(labels, np.shape(top)[1]) == np.array(top).ravel(),np.array(top).shape).astype(int)
+    score_eval = np.mean(np.sum(mat/np.log2(np.arange(2, mat.shape[1] + 2)),axis = 1))
+    return 'ndcg5', score_eval
+
+
 def score(probabilities, y, le):
     assert(probabilities.shape[0] == y.shape[0])
     count = probabilities.shape[0]
