@@ -1,4 +1,5 @@
 {
   "competition-data-dir": "C:/airbnb/data",
-  "submission-dir": "C:/airbnb/submissions"
+  "submission-dir": "C:/airbnb/submissions",
+  "cache-dir": "C:/airbnb/cache"
 }

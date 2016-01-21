@@ -1,3 +1,4 @@
+import os.path
 import numpy as np
 import pandas as pd
 from collections import namedtuple
@@ -20,7 +21,7 @@ from dataset import DataSet
 
 
 TaskCore = namedtuple('TaskCore', ['data_file', 'sessions_data_file', 'test_data_file', 'submission_file',
-                                   'cv_ratio', 'n_threads', 'n_seed'])
+                                   'cv_ratio', 'n_threads', 'n_seed', 'cache_dir'])
 destinations = ['NDF', 'US', 'other', 'FR', 'CA', 'GB', 'ES', 'IT', 'DE', 'NL',  'AU', 'PT',]
 
 le_ = LabelEncoder()
@@ -58,9 +59,18 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                #, max_rows=50000
                                 )
-        x = ds_from_df(data_df, sessions_df, False)
+
+        cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
+        if os.path.isfile(cache_file):
+            print('Loading test features from file')
+            x = DataSet.load_from_file(cache_file)
+        else:
+            x = ds_from_df(data_df, sessions_df, False)
+            print('saving test features to file')
+            DataSet.save_to_file(x, cache_file)
+
         labels = data_df['country_destination'].values
         y = le_.transform(labels)
         return x, y
@@ -75,9 +85,19 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=10000
+                                #, max_rows=50000
                                 )
-        return ds_from_df(data_df, sessions_df, True)
+
+        cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
+        if os.path.isfile(cache_file):
+            print('Loading train features from file')
+            x = DataSet.load_from_file(cache_file)
+        else:
+            x = ds_from_df(data_df, sessions_df, True)
+            print('saving train features to file')
+            DataSet.save_to_file(x, cache_file)
+
+        return x
 
     def load_data(self):
         print('Loading test data ', self.task_core.test_data_file, ' to pandas data frame')
@@ -95,10 +115,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), 'knn_8'),
         (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), 'knn_32'),
         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), 'knn_64'),
+        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), 'knn_128'),
+        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), 'knn_256'),
+        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), 'knn_512'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), 'xg'),
         (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'rfc'),
         (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'etc'),
-        (AdaBoostClassifier(n_estimators=300, random_state=n_seed), 'ada')
+        # (AdaBoostClassifier(n_estimators=300, random_state=n_seed), 'ada')
     ]
     x_train, x_test = add_blend_feature(
         classifiers_no_session,
@@ -121,6 +144,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), 'knn_2014_8'),
         (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), 'knn_2014_32'),
         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), 'knn_2014_64'),
+        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), 'knn_2014_128'),
+        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), 'knn_2014_256'),
+        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), 'knn_2014_512'),
         (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'rfc_2014'),
         (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'etc_2014'),
         (AdaBoostClassifier(n_estimators=300, random_state=n_seed), 'ada_2014')
@@ -169,7 +195,7 @@ class CrossValidationScoreTask(Task):
                                   self.task_core.n_threads, self.task_core.n_seed)
 
         print_probabilities(probabilities)
-        s = score(probabilities, y_test, le_)
+        s = score(probabilities, y_test)
         return {'Score': s}
 
 

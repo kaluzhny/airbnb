@@ -4,7 +4,7 @@ from sklearn.cross_validation import StratifiedKFold
 from xgboost.sklearn import XGBClassifier
 from features import remove_sessions_columns
 from dataset import DataSet
-from scores import ndcg5_eval, print_xgboost_scores
+from scores import ndcg5_eval, print_xgboost_scores, score
 
 n_folds = 4
 
@@ -49,6 +49,8 @@ def train_blend_feature(classifier, x, y, classes_count, random_state):
 
     print('train_blend_feature: x - ', x.shape, '; y - ', y.shape)
 
+    scores = []
+
     folds = list(StratifiedKFold(y, n_folds, random_state=random_state))
     blend_train = np.zeros((x.shape[0], classes_count))
     for i, (train_idx, test_idx) in enumerate(folds):
@@ -64,7 +66,12 @@ def train_blend_feature(classifier, x, y, classes_count, random_state):
             classifier.fit(x_blend_train, y_blend_train)
         y_blend_predicted = no_sessions_classifiers[i].predict_proba(x_blend_test)
         blend_train[test_idx, :classes_count] = y_blend_predicted
-    print('blend_train shape: ', blend_train.shape)
+
+        # score
+        y_blend_test = y[test_idx]
+        scores.append(score(y_blend_predicted, y_blend_test))
+
+    print('feature score: ', np.average(scores))
 
     return no_sessions_classifiers, blend_train
 
@@ -74,6 +81,7 @@ def predict_blend_feature(x, classifiers, classes_count):
     for i in range(n_folds):
         blend_test_all[:, i, :] = classifiers[i].predict_proba(x)
     return blend_test_all.mean(1)
+
 
 def simple_predict(classifier, x_train, y_train, x_test):
     x_train_data = x_train.data_

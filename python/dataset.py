@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 
 class DataSet(object):
@@ -10,6 +11,22 @@ class DataSet(object):
         columns = df.columns.values.tolist()
         data = df.as_matrix().astype(float)
         return DataSet(ids, columns, data)
+
+    @staticmethod
+    def save_to_file(ds, path):
+        data = {
+            'ids': ds.ids_,
+            'columns': ds.columns_,
+            'data': ds.data_
+        }
+        with open(path, 'wb') as f:
+            pickle.dump(data, f)
+
+    @staticmethod
+    def load_from_file(path):
+        with open(path, 'rb') as f:
+            data = pickle.load(f)
+        return DataSet(data['ids'], data['columns'], data['data'])
 
     def __init__(self, ids, columns, data):
         assert(len(ids) == data.shape[0])

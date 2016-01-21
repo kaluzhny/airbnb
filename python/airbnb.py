@@ -2,6 +2,7 @@ import json
 import os.path
 import numpy as np
 import sys
+from random import randint
 
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression, SGDClassifier
@@ -32,6 +33,7 @@ def run_airbnb(target):
 
     data_dir = str(settings['competition-data-dir'])
     submission_dir = str(settings['submission-dir'])
+    cache_dir = str(settings['cache-dir'])
 
     classifier = XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed)
     # (LogisticRegression(), 'lr'),
@@ -47,16 +49,17 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_simple_more_session_features_new_blend_noacr_ce_knn_' +
+        'submission_simple_more_session_features_new_blend_noacr_ce_knn512_noada1_' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():
             print('===== Making cross-validation')
             scores = []
-            for i in range(5):
+            for i in range(10):
+                seed = randint(0, 1000000)
                 task_core = TaskCore(data_file=train_file, sessions_data_file=sessions_file, test_data_file=test_file,
                                      submission_file=submission_file, cv_ratio=0.5,
-                                     n_threads=n_threads, n_seed=n_seed)
+                                     n_threads=n_threads, n_seed=seed, cache_dir=cache_dir)
                 data = CrossValidationScoreTask(task_core, classifier).run()
                 score = data['Score']
                 scores.append(score)
@@ -66,7 +69,7 @@ def run_airbnb(target):
     def make_prediction():
         task_core = TaskCore(data_file=train_file, sessions_data_file=sessions_file, test_data_file=test_file,
                              submission_file=submission_file, cv_ratio=0.5,
-                             n_threads=n_threads, n_seed=n_seed)
+                             n_threads=n_threads, n_seed=n_seed, cache_dir=cache_dir)
         MakePredictionTask(task_core, classifier).run()
 
     if target == 'cv':

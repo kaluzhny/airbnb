@@ -23,13 +23,13 @@ def ndcg5_eval(predictions, true_values):
     return 'ndcg5', score_eval
 
 
-def score(probabilities, y, le):
+def score(probabilities, y):
     assert(probabilities.shape[0] == y.shape[0])
     count = probabilities.shape[0]
     scores = np.zeros(count)
     for i in range(count):
-        truth = le.inverse_transform(y[i])
-        predicted_i = le.inverse_transform(np.argsort(probabilities[i]))[::-1][:5]
+        truth = y[i]
+        predicted_i = np.argsort(probabilities[i])[::-1][:5]
         predicted_i_v = np.zeros(5, dtype=np.int32) + (predicted_i == truth)
         scores[i] = ndcg_at_k(predicted_i_v)
     return np.average(scores)
