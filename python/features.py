@@ -202,7 +202,7 @@ def add_sessions_features(data_df, sessions_df):
     sessions_actions_count_df.columns=['id', 's_count_all']
     data_df = pd.merge(data_df, sessions_actions_count_df, on='id', how='left')
     data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else -1, axis=1)
-    # return data_df
+    return data_df
 
     data_df['s_unique_devices'] = session_unique_devices_count(data_df, sessions_df)
 

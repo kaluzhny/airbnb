@@ -59,7 +59,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                # , max_rows=50000
+                                #, max_rows=10000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -85,7 +85,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                # , max_rows=50000
+                                #, max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
@@ -146,6 +146,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), 'knn_2014_64'),
         (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), 'knn_2014_128'),
         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), 'knn_2014_256'),
+        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), 'xg'),
         (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'rfc_2014'),
         (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), 'rfc_e_2014'),
         (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), 'etc_2014'),
