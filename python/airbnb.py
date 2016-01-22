@@ -49,7 +49,7 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_simple_more_session_features_new_blend_noacr_ce_knn512_noada1_' +
+        'submission_simple_more_session_features_new_blend_noacr_knn1024_entropy_' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():

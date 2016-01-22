@@ -90,6 +90,6 @@ def simple_predict(classifier, x_train, y_train, x_test):
     print('x_test shape: ', x_test_data.shape)
 
     classifier.fit(x_train_data, y_train, eval_metric='ndcg@5')
-    print_xgboost_scores(classifier, x_train.columns_)
+    # print_xgboost_scores(classifier, x_train.columns_)
     probabilities = classifier.predict_proba(x_test_data)
     return probabilities
