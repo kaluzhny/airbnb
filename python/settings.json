@@ -1,0 +1,5 @@
+{
+  "competition-data-dir": "/home/ubuntu/airbnb/data",
+  "submission-dir": "/home/ubuntu/airbnb/submissions",
+  "cache-dir": "/home/ubuntu/airbnb/cache"
+}
