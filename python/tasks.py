@@ -113,11 +113,16 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     classifiers_no_session = [
         #(LogisticRegression(), False, 'lr'),
         #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
+        (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4'),
-        #(XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
-        #(RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e'),
-        #(ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e'),
-        #(AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada')
+        (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
+        (RandomForestClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc50_e'),
+        (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e'),
+        (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc200_e'),
+        (ExtraTreesClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc50_e'),
+        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e'),
+        (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, 'ada50'),
+        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada100'),
     ]
     x_train, x_test = add_blend_feature(
         classifiers_no_session,
@@ -138,11 +143,15 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     classifiers_session = [
         #(LogisticRegression(), False, 'lr_2014'),
         #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_2014_128'),
-        #(XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3_2014'),
+        (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3_2014'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4_2014'),
-        #(RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e_2014'),
-        #(ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e_2014'),
-        #(AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada_2014')
+        (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5_2014'),
+        (RandomForestClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc50_e_2014'),
+        (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e_2014'),
+        (ExtraTreesClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc50_e_2014'),
+        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e_2014'),
+        (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False,'ada50_2014'),
+        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada100_2014'),
     ]
     x_train_sessions, x_test = add_blend_feature(
         classifiers_session,
