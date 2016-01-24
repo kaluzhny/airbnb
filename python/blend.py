@@ -64,7 +64,7 @@ def train_blend_feature(classifier, scale, x, y, classes_count, random_state):
 
     scores = []
 
-    folds = list(StratifiedKFold(y, n_folds, random_state=random_state))
+    folds = list(StratifiedKFold(y, n_folds, shuffle=True, random_state=random_state))
     blend_train = np.zeros((x.shape[0], classes_count))
     for i, (train_idx, test_idx) in enumerate(folds):
         print('fold: ', i)

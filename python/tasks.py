@@ -59,7 +59,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                # , max_rows=50000
+                                #, max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -85,7 +85,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                # , max_rows=50000
+                                #, max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
@@ -111,19 +111,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print_columns(x_train.columns_)
 
     classifiers_no_session = [
-        (LogisticRegression(), False, 'lr'),
-        (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), True, 'knn_32'),
-        (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), True, 'knn_64'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
-        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), True, 'knn_256'),
-        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), True, 'knn_512'),
-        (KNeighborsClassifier(n_neighbors=1024, n_jobs=n_threads), True, 'knn_1024'),
-        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg'),
-        (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, 'rfc'),
-        (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e'),
-        (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, 'etc'),
-        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e'),
-        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada')
+        #(LogisticRegression(), False, 'lr'),
+        #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
+        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4'),
+        #(XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
+        #(RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e'),
+        #(ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e'),
+        #(AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada')
     ]
     x_train, x_test = add_blend_feature(
         classifiers_no_session,
@@ -142,20 +136,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
     classifiers_session = [
-        (LogisticRegression(), True, 'lr_2014_scale'),
-        (LogisticRegression(), False, 'lr_2014'),
-        (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), True, 'knn_2014_8'),
-        (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), True, 'knn_2014_32'),
-        (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), True, 'knn_2014_64'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_2014_128'),
-        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), True, 'knn_2014_256'),
-        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), True, 'knn_2014_512'),
-        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg'),
-        (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, 'rfc_2014'),
-        (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e_2014'),
-        (ExtraTreesClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, 'etc_2014'),
-        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e_2014'),
-        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada_2014')
+        #(LogisticRegression(), False, 'lr_2014'),
+        #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_2014_128'),
+        #(XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3_2014'),
+        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4_2014'),
+        #(RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e_2014'),
+        #(ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc_e_2014'),
+        #(AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada_2014')
     ]
     x_train_sessions, x_test = add_blend_feature(
         classifiers_session,
@@ -220,9 +207,9 @@ class MakePredictionTask(Task):
 
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
-        perm_idxs = list(np.random.permutation(y_train.shape[0]))
-        x_train = x_train.filter_rows(perm_idxs)
-        y_train = y_train[perm_idxs]
+        # perm_idxs = list(np.random.permutation(y_train.shape[0]))
+        # x_train = x_train.filter_rows(perm_idxs)
+        # y_train = y_train[perm_idxs]
 
         x_test, x_train = sync_columns(x_test, x_train)
 
