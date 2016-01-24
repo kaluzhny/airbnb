@@ -117,7 +117,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), True, 'knn_64'),
         # (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), True, 'knn_256_scale'),
-        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, 'knn_256'),
+        # (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, 'knn_256'),
         # (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), True, 'knn_512_scale'),
         # (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, 'knn_512'),
         # (KNeighborsClassifier(n_neighbors=1024, n_jobs=n_threads), True, 'knn_1024'),
@@ -152,7 +152,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), True, 'knn_2014_64'),
         # (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_2014_128'),
         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), True, 'knn_2014_256_scale'),
-        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, 'knn_2014_256'),
+        # (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, 'knn_2014_256'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg'),
         (RandomForestClassifier(n_estimators=100, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, 'rfc_2014'),
         # (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc_e_2014'),
@@ -188,6 +188,7 @@ class CrossValidationScoreTask(Task):
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
 
+
         # split
         train_idxs, test_idxs = list(StratifiedShuffleSplit(y_train, 1, test_size=self.task_core.cv_ratio,
                                                        random_state=self.task_core.n_seed))[0]
@@ -222,6 +223,9 @@ class MakePredictionTask(Task):
 
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
+        perm_idxs = list(np.random.permutation(y_train.shape[0]))
+        x_train = x_train.filter_rows(perm_idxs)
+        y_train = y_train[perm_idxs]
 
         x_test, x_train = sync_columns(x_test, x_train)
 
