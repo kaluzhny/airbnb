@@ -35,8 +35,8 @@ def run_airbnb(target):
     submission_dir = str(settings['submission-dir'])
     cache_dir = str(settings['cache-dir'])
 
-    # classifier = XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed)
-    classifier = LogisticRegression()
+    classifier = XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed)
+    # classifier = LogisticRegression()
 
     train_file = os.path.join(data_dir, 'train_users.csv')
     test_file = os.path.join(data_dir, 'test_users.csv')
@@ -72,4 +72,4 @@ def run_airbnb(target):
     elif target == 'prediction':
         make_prediction()
 
-run_airbnb('cv')
+run_airbnb('prediction')
