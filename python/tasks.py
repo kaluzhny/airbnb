@@ -120,7 +120,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e'),
         (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc200_e'),
         # (ExtraTreesClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc50_e'),
-        # (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e'),
+        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc200_e'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, 'ada50'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada100'),
     ]
@@ -150,7 +151,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e_2014'),
         (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc200_e_2014'),
         # (ExtraTreesClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc50_e_2014'),
-        # (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e_2014'),
+        (ExtraTreesClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc100_e_2014'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'etc200_e_2014'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False,'ada50_2014'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada100_2014'),
     ]
