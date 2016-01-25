@@ -111,7 +111,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print_columns(x_train.columns_)
 
     classifiers_no_session = [
-        (LogisticRegression(), False, 'lr'),
+        # (LogisticRegression(), False, 'lr'),
         #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
         # (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4'),
@@ -141,7 +141,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
     classifiers_session = [
-        (LogisticRegression(), False, 'lr_2014'),
+        # (LogisticRegression(), False, 'lr_2014'),
         #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_2014_128'),
         # (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3_2014'),
         (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4_2014'),
