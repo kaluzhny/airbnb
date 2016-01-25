@@ -30,6 +30,10 @@ def get_blend_feature(classifier, scale, classes_count,
            DataSet(x_test.ids_, new_columns, feature_test_data)
 
 
+def apply_log(x):
+    return DataSet(x.ids_, x.columns_, np.log(x.data_ + 2))
+
+
 def add_blend_feature(classifiers, classes_count, remove_session_features,
                       x_train, y_train, x_test, random_state):
 
@@ -40,9 +44,16 @@ def add_blend_feature(classifiers, classes_count, remove_session_features,
         x_train = remove_sessions_columns(x_train)
         x_test = remove_sessions_columns(x_test)
 
-    for classifier, scale, classifier_name in classifiers:
+    for classifier, logarithm, scale, classifier_name in classifiers:
         print('adding feature with classifier ' + classifier_name + ' ...')
         feature_prefix = classifier_name + '_'
+
+        assert(not logarithm or not scale)
+
+        if logarithm:
+            x_train = apply_log(x_train)
+            x_test = apply_log(x_test)
+
         feature_train, feature_test = get_blend_feature(classifier, scale, classes_count,
                                                         x_train, y_train, x_test, feature_prefix,
                                                         random_state)
