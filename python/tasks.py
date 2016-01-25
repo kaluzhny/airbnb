@@ -114,7 +114,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (LogisticRegression(), False, 'lr'),
         #(KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), True, 'knn_128'),
         # (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3'),
-        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, 'xg4'),
+        (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
         # (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
         # (RandomForestClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc50_e'),
         # (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e'),
