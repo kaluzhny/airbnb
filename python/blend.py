@@ -34,22 +34,25 @@ def apply_log(x):
     return DataSet(x.ids_, x.columns_, np.log(x.data_ + 2))
 
 
-def add_blend_feature(classifiers, classes_count, remove_session_features,
-                      x_train, y_train, x_test, random_state):
-
+def add_blend_feature(classifiers, classes_count, x_train, y_train, x_test, random_state):
     x_train_featured = x_train
     x_test_featured = x_test
+    features_train, features_test = get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state)
+    x_train_featured = x_train_featured.append_horizontal(features_train)
+    x_test_featured = x_test_featured.append_horizontal(features_test)
+    return x_train_featured, x_test_featured
 
-    if remove_session_features:
-        x_train = remove_sessions_columns(x_train)
-        x_test = remove_sessions_columns(x_test)
+
+def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state):
+
+    features_train = None
+    features_test = None
 
     for classifier, logarithm, scale, classifier_name in classifiers:
         print('adding feature with classifier ' + classifier_name + ' ...')
         feature_prefix = classifier_name + '_'
 
         assert(not logarithm or not scale)
-
         if logarithm:
             x_train = apply_log(x_train)
             x_test = apply_log(x_test)
@@ -57,10 +60,16 @@ def add_blend_feature(classifiers, classes_count, remove_session_features,
         feature_train, feature_test = get_blend_feature(classifier, scale, classes_count,
                                                         x_train, y_train, x_test, feature_prefix,
                                                         random_state)
-        x_train_featured = x_train_featured.append_horizontal(feature_train)
-        x_test_featured = x_test_featured.append_horizontal(feature_test)
 
-    return x_train_featured, x_test_featured
+        if features_train is None:
+            assert(features_test is None)
+            features_train = feature_train
+            features_test = feature_test
+        else:
+            features_train = features_train.append_horizontal(feature_train)
+            features_test = features_test.append_horizontal(feature_test)
+
+    return features_train, features_test
 
 
 def train_blend_feature(classifier, scale, x, y, classes_count, random_state):

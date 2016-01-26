@@ -17,7 +17,7 @@ from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
     divide_by_has_sessions, sync_columns, sync_columns_2, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
-from blend import add_blend_feature, train_blend_feature, predict_blend_feature, simple_predict
+from blend import add_blend_feature, train_blend_feature, predict_blend_feature, simple_predict, get_blend_features
 from dataset import DataSet
 
 
@@ -119,20 +119,20 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_32'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        # (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3'),
         (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, False, 'xg5'),
-        # (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400'),
-        # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, 'ada50'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, 'ada100'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
+        # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
+        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
-    x_train, x_test = add_blend_feature(
+    no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session,
         classes_count,
-        True,
-        x_train, y_train, x_test,
+        remove_sessions_columns(x_train), y_train,
+        remove_sessions_columns(x_test),
         n_seed)
+    x_train = x_train.append_horizontal(no_session_features_train)
+    x_test = x_test.append_horizontal(no_session_features_test)
 
     print('x_train: ', x_train.data_.shape)
     print('x_test: ', x_test.data_.shape)
@@ -143,29 +143,28 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('x_train_sessions: ', x_train_sessions.data_.shape)
     print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
-    # classifiers_session = [
-    #     # (MultinomialNB(), True, False, 'nb_2014'),
-    #     # (LogisticRegression(), False, False, 'lr_2014'),
-    #     # (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_2014_4'),
-    #     # (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_2014_8'),
-    #     # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_2014_16'),
-    #     # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-    #     # (XGBClassifier(objective='multi:softmax', max_depth=3, nthread=n_threads, seed=n_seed), False, 'xg3_2014'),
-    #     (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
-    #     # (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, 'xg5_2014'),
-    #     # (RandomForestClassifier(n_estimators=50, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc50_e_2014'),
-    #     # (RandomForestClassifier(n_estimators=100, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, 'rfc100_e_2014'),
-    #     (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
-    #     (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
-    #     # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False,'ada50_2014'),
-    #     # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False,'ada100_2014'),
-    # ]
-    # x_train_sessions, x_test = add_blend_feature(
-    #     classifiers_session,
-    #     classes_count,
-    #     False,
-    #     x_train_sessions, y_train_sessions, x_test,
-    #     n_seed)
+    classifiers_session = [
+        # (MultinomialNB(), True, False, 'nb_2014'),
+        # (LogisticRegression(), False, False, 'lr_2014'),
+        # (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_2014_4'),
+        # (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_2014_8'),
+        # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_2014_16'),
+        # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
+        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
+        (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
+        # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False,'ada50_2014'),
+        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False,'ada100_2014'),
+    ]
+
+    session_features_train, session_features_test = get_blend_features(
+        classifiers_session,
+        classes_count,
+        x_train_sessions, y_train_sessions, x_test,
+        n_seed)
+    x_train_sessions = x_train_sessions.append_horizontal(session_features_train)
+    x_test = x_test.append_horizontal(session_features_test)
+
 
     print('Predicting all features...')
     print_columns(x_train_sessions.columns_)
