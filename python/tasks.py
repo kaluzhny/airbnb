@@ -112,8 +112,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print_columns(x_train.columns_)
 
     classifiers_no_session = [
-        # (MultinomialNB(), True, False, 'nb'),
-        # (LogisticRegression(), False, False, 'lr'),
+        (MultinomialNB(), True, False, 'nb'),
+        (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
         # (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_8'),
         # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
@@ -123,7 +123,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session,
@@ -131,8 +131,6 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         remove_sessions_columns(x_train), y_train,
         remove_sessions_columns(x_test),
         n_seed)
-    x_train = x_train.append_horizontal(no_session_features_train)
-    x_test = x_test.append_horizontal(no_session_features_test)
 
     print('x_train: ', x_train.data_.shape)
     print('x_test: ', x_test.data_.shape)
@@ -144,16 +142,16 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
     classifiers_session = [
-        # (MultinomialNB(), True, False, 'nb_2014'),
-        # (LogisticRegression(), False, False, 'lr_2014'),
+        (MultinomialNB(), True, False, 'nb_2014'),
+        (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_2014_4'),
         # (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_2014_8'),
         # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_2014_16'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
+        # (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
         (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
-        # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False,'ada50_2014'),
+        (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False,'ada50_2014'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False,'ada100_2014'),
     ]
 
@@ -162,9 +160,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         classes_count,
         x_train_sessions, y_train_sessions, x_test,
         n_seed)
+
+    no_session_features_train = no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_)
+    x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train)
+    x_test = x_test.append_horizontal(no_session_features_test)
+
     x_train_sessions = x_train_sessions.append_horizontal(session_features_train)
     x_test = x_test.append_horizontal(session_features_test)
-
 
     print('Predicting all features...')
     print_columns(x_train_sessions.columns_)
@@ -191,9 +193,9 @@ class CrossValidationScoreTask(Task):
         # split
         train_idxs, test_idxs = list(StratifiedShuffleSplit(y_train, 1, test_size=self.task_core.cv_ratio,
                                                        random_state=self.task_core.n_seed))[0]
-        x_test = x_train.filter_rows(test_idxs)
+        x_test = x_train.filter_rows_by_idxs(test_idxs)
         y_test = y_train[test_idxs]
-        x_train = x_train.filter_rows(train_idxs)
+        x_train = x_train.filter_rows_by_idxs(train_idxs)
         y_train = y_train[train_idxs]
 
         # 2014 only for test

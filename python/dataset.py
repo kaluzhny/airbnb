@@ -46,8 +46,12 @@ class DataSet(object):
 
         return DataSet(self.ids_, columns, data)
 
-    def filter_rows(self, idxs):
+    def filter_rows_by_idxs(self, idxs):
         ids = [self.ids_[idx] for idx in idxs]
+        return DataSet(ids, self.columns_, self.data_[idxs,:])
+
+    def filter_rows_by_ids(self, ids):
+        idxs = [self.ids_.index(id) for id in ids]
         return DataSet(ids, self.columns_, self.data_[idxs,:])
 
     def append_horizontal(self, right):
