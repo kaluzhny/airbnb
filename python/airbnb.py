@@ -72,4 +72,4 @@ def run_airbnb(target):
     elif target == 'prediction':
         make_prediction()
 
-run_airbnb('predict')
+run_airbnb('prediction')
