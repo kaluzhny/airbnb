@@ -109,7 +109,7 @@ def add_features(data_df):
         lambda r: 2015 - r['age'] if (np.isfinite(r['age']) & (r['age'] >= 1900) & (r['age'] < 2000)) else r['age'], axis=1)
     data_df['has_age'] = data_df.apply(lambda r: 0 if pd.isnull(r['age']) or r['age'] <= 16 or r['age'] >= 80 else 1, axis=1)
 
-    data_df['age_imp'] = data_df.apply(lambda r: r['age'] if (np.isfinite(r['age']) & (r['age'] >= 16) & (r['age'] < 80)) else -1, axis=1)
+    data_df['age_imp'] = data_df.apply(lambda r: r['age'] if (np.isfinite(r['age']) & (r['age'] >= 16) & (r['age'] < 80)) else 0, axis=1)
 
     # mean_age = data_df[np.isfinite(data_df['age']) & (data_df['age'] < 100)]['age'].mean()
     # data_df['age_imp_mean'] = data_df.apply(
@@ -166,7 +166,7 @@ def sessions_has_column_feature(data_df, sessions_df, column, feature):
                                                                                                        's_count_all']]
 
     df_action_type_counts['count'] = df_action_type_counts.apply(
-        lambda r : r['count'] if not math.isnan(r['count']) else (-1 if r['s_count_all'] == -1 else 0), axis=1)
+        lambda r : r['count'] if not math.isnan(r['count']) else (0 if r['s_count_all'] == 0 else 0), axis=1)
 
     return df_action_type_counts['count']
 
@@ -178,7 +178,7 @@ def session_unique_devices_count(data_df, sessions_df):
     df_sessions_devices_counts = pd.merge(data_df, df_sessions_devices, on='id', how='left')[[
         'id', 'count', 's_count_all']]
     df_sessions_devices_counts['count'] = df_sessions_devices_counts.apply(
-        lambda r : r['count'] if not math.isnan(r['count']) else (-1 if r['s_count_all'] == -1 else 0), axis=1)
+        lambda r : r['count'] if not math.isnan(r['count']) else (0 if r['s_count_all'] == 0 else 0), axis=1)
     return df_sessions_devices_counts['count']
 
 
@@ -201,7 +201,7 @@ def add_sessions_features(data_df, sessions_df):
     sessions_actions_count_df=pd.DataFrame({'s_count_all' : sessions_df.groupby(['user_id']).size()}).reset_index()
     sessions_actions_count_df.columns=['id', 's_count_all']
     data_df = pd.merge(data_df, sessions_actions_count_df, on='id', how='left')
-    data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else -1, axis=1)
+    data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else 0, axis=1)
     # return data_df
 
     data_df['s_unique_devices'] = session_unique_devices_count(data_df, sessions_df)
