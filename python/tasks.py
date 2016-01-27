@@ -15,7 +15,7 @@ from sklearn.naive_bayes import MultinomialNB
 
 from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
-    divide_by_has_sessions, sync_columns, sync_columns_2, add_sessions_features, print_columns, add_features
+    get_2014, get_with_session, get_with_no_session, sync_columns, sync_columns_2, add_sessions_features, print_columns, add_features
 from probabilities import print_probabilities, correct_probs, adjust_test_data
 from blend import add_blend_feature, train_blend_feature, predict_blend_feature, simple_predict, get_blend_features
 from dataset import DataSet
@@ -118,7 +118,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (XGBClassifier(objective='multi:softmax', max_depth=5, nthread=n_threads, seed=n_seed), False, False, 'xg5'),
+        (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
@@ -129,7 +129,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_2014'),
         # (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-        # (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_softprob_2014'),
         (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
@@ -142,10 +142,13 @@ def get_model_classifiers(n_threads, n_seed):
 
 
 def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_seed):
+    ########################################################
     print('printing train_columns/test_columns')
     assert(x_train.columns_ == x_test.columns_)
     print_columns(x_train.columns_)
-
+    print('x_train: ', x_train.data_.shape)
+    print('x_test: ', x_test.data_.shape)
+    ########################################################
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
 
     no_session_features_train, no_session_features_test = get_blend_features(
@@ -155,29 +158,48 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         remove_sessions_columns(x_test),
         n_seed)
 
-    print('x_train: ', x_train.data_.shape)
-    print('x_test: ', x_test.data_.shape)
-    x_train_sessions, y_train_sessions, x_train_no_sessions, y_train_no_sessions = divide_by_has_sessions(
-        x_train, y_train)
+    x_train_2014, y_train_2014 = get_2014(x_train, y_train)
+    x_train_2014session, y_train_2014session = get_with_session(x_train_2014, y_train_2014)
+    x_test_session = get_with_session(x_test)
 
-    print('x_train_sessions: ', x_train_sessions.data_.shape)
-    print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
-
-    session2014_features_train, session2014_features_test = get_blend_features(
+    print('x_train_2014session: ', x_train_2014session.data_.shape)
+    features_2014session_train, features_session2014_test = get_blend_features(
         classifiers_2014,
         classes_count,
-        x_train_sessions, y_train_sessions, x_test,
+        x_train_2014session, y_train_2014session, x_test_session,
         n_seed)
 
-    x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_))
-    x_test = x_test.append_horizontal(no_session_features_test)
+    print('Predicting session probabilities...')
+    x_train_2014session = x_train_2014session.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_2014session.ids_))
+    x_test_session = x_test_session.append_horizontal(no_session_features_test.filter_rows_by_ids(x_test_session.ids_))
+    x_train_2014session = x_train_2014session.append_horizontal(features_2014session_train)
+    x_test_session = x_test_session.append_horizontal(features_session2014_test)
+    probabilities_session = simple_predict(clone(classifier), x_train_2014session, y_train_2014session, x_test_session)
+    print_probabilities(probabilities_session)
 
-    x_train_sessions = x_train_sessions.append_horizontal(session2014_features_train)
-    x_test = x_test.append_horizontal(session2014_features_test)
+    print('Predicting no session probabilities...')
+    x_test_no_session = get_with_no_session(x_test)
+    probabilities_no_session = simple_predict(clone(classifier),
+                                              remove_sessions_columns(x_train), y_train,
+                                              remove_sessions_columns(x_test_no_session))
+    print_probabilities(probabilities_no_session)
 
-    print('Predicting all features...')
-    print_columns(x_train_sessions.columns_)
-    probabilities = simple_predict(clone(classifier), x_train_sessions, y_train_sessions, x_test)
+    probabilities = np.zeros((len(x_test.ids_), classes_count))
+    idx_session = 0
+    idx_no_session = 0
+    for idx, test_id in enumerate(x_test.ids_):
+
+        if x_test_session.ids_[idx_session] == test_id:
+            probabilities[idx, :] = probabilities_session[idx_session, :]
+            idx_session += 1
+            continue
+
+        if x_test_no_session.ids_[idx_no_session] == test_id:
+            probabilities[idx, :] = probabilities_no_session[idx_no_session, :]
+            idx_no_session += 1
+            continue
+
+        assert False
 
     return probabilities
 
@@ -196,7 +218,6 @@ class CrossValidationScoreTask(Task):
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
 
-
         # split
         train_idxs, test_idxs = list(StratifiedShuffleSplit(y_train, 1, test_size=self.task_core.cv_ratio,
                                                        random_state=self.task_core.n_seed))[0]
@@ -206,7 +227,7 @@ class CrossValidationScoreTask(Task):
         y_train = y_train[train_idxs]
 
         # 2014 only for test
-        x_test, y_test, _, _ = divide_by_has_sessions(x_test, y_test)
+        x_test, y_test = get_2014(x_test, y_test)
 
         print('running prediction model')
         probabilities = run_model(x_train, y_train, x_test, classes_count, self.classifier,

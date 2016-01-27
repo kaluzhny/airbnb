@@ -133,9 +133,6 @@ def simple_predict(classifier, x_train, y_train, x_test):
     print('x_train shape: ', x_train_data.shape)
     print('x_test shape: ', x_test_data.shape)
 
-
-    # classifier.fit(x_train_data, y_train, eval_metric='ndcg@5')
-
     if isinstance(classifier, XGBClassifier):
         classifier.fit(x_train_data, y_train, eval_metric=ndcg5_eval)
     else:
