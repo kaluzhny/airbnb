@@ -201,14 +201,14 @@ def add_sessions_features(data_df, sessions_df):
     sessions_actions_count_df=pd.DataFrame({'s_count_all' : sessions_df.groupby(['user_id']).size()}).reset_index()
     sessions_actions_count_df.columns=['id', 's_count_all']
     data_df = pd.merge(data_df, sessions_actions_count_df, on='id', how='left')
-    data_df['s_count_all'] = data_df.apply(lambda r: r['s_count_all'] if (r['s_count_all'] > 0) else 0, axis=1)
+    data_df['s_count_all'] = data_df.apply(lambda r: math.log(r['s_count_all'] + 1) if (r['s_count_all'] > 0) else 0, axis=1)
     # return data_df
 
     df_sessions_secs = sessions_df[['user_id', 'secs_elapsed']]
     df_sessions_secs = df_sessions_secs.groupby(['user_id']).sum().reset_index()
     df_sessions_secs.columns=['id', 's_secs_elapsed']
     data_df = pd.merge(data_df, df_sessions_secs, on='id', how='left')
-    data_df['s_secs_elapsed'] = data_df.apply(lambda r: r['s_secs_elapsed'] if (r['s_secs_elapsed'] > 0) else 0, axis=1)
+    data_df['s_secs_elapsed'] = data_df.apply(lambda r: math.log(r['s_secs_elapsed'] + 1) if (r['s_secs_elapsed'] > 0) else 0, axis=1)
 
     data_df['s_unique_devices'] = session_unique_devices_count(data_df, sessions_df)
 
