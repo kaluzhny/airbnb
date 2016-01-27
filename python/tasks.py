@@ -142,8 +142,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
 
     classifiers_session = [
-        # (MultinomialNB(), True, False, 'nb_2014'),
-        # (LogisticRegression(), False, False, 'lr_2014'),
+        (MultinomialNB(), True, False, 'nb_2014'),
+        (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_2014_4'),
         # (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_2014_8'),
         # (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_2014_16'),
@@ -151,8 +151,10 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         # (XGBClassifier(objective='multi:softmax', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4_2014'),
         (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
+        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_2014'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False,'ada50_2014'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False,'ada100_2014'),
+        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False,'ada100_2014'),
     ]
 
     session_features_train, session_features_test = get_blend_features(

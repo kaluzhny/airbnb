@@ -44,7 +44,7 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_xg_rfc_etc_nb_posonly_lesshasact_late_' +
+        'submission_xg_rfc_etc_late_2014nblrginiada_' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():
@@ -72,4 +72,4 @@ def run_airbnb(target):
     elif target == 'prediction':
         make_prediction()
 
-run_airbnb('cv')
+run_airbnb('prediction')
