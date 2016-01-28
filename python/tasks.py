@@ -110,8 +110,8 @@ def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
         (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_all'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
+        # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
+        # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
     ]
 
     classifiers_no_session_data = [
@@ -119,8 +119,8 @@ def get_model_classifiers(n_threads, n_seed):
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
+        # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
+        # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
@@ -130,8 +130,8 @@ def get_model_classifiers(n_threads, n_seed):
         # (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_2014'),
-        (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
+        # (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
+        # (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_2014'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False,'ada50_2014'),
@@ -160,19 +160,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train_sessions, y_train_sessions, x_train_no_sessions, y_train_no_sessions = divide_by_has_sessions(
         x_train, y_train)
 
-    print('x_train_sessions: ', x_train_sessions.data_.shape)
-    print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
-    session2014_features_train, session2014_features_test = get_blend_features(
-        classifiers_2014,
-        classes_count,
-        x_train_sessions, y_train_sessions, x_test,
-        n_seed)
-
     x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_))
     x_test = x_test.append_horizontal(no_session_features_test)
-
-    x_train_sessions = x_train_sessions.append_horizontal(session2014_features_train)
-    x_test = x_test.append_horizontal(session2014_features_test)
 
     print('Predicting all features...')
     print_columns(x_train_sessions.columns_)
