@@ -119,6 +119,9 @@ def train_blend_feature(classifier, scale, x, y, classes_count, random_state):
 
 
 def predict_blend_feature(x, classifiers, scalers, classes_count):
+    print('predict_blend_feature...')
+    print('x shape: ', x.shape)
+
     blend_test_all = np.zeros((x.shape[0], n_folds, classes_count))
     for i in range(n_folds):
         if scalers is not None:
