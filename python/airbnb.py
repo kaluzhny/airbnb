@@ -35,7 +35,7 @@ def run_airbnb(target):
     submission_dir = str(settings['submission-dir'])
     cache_dir = str(settings['cache-dir'])
 
-    classifier = XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed)
+    classifier = XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=50, nthread=n_threads, seed=n_seed)
     # classifier = LogisticRegression()
 
     train_file = os.path.join(data_dir, 'train_users.csv')
@@ -44,7 +44,7 @@ def run_airbnb(target):
 
     submission_file = os.path.join(
         submission_dir,
-        'submission_lr_nb_xg_1feature_remove_softprob4' +
+        'submission_xg_1feature_softprob4_50' +
         submission_suffix + '_seed_' + str(n_seed) + '.csv')
 
     def do_cross_validation():

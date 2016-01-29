@@ -109,9 +109,9 @@ class TestDataTask(Task):
 def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
-        (MultinomialNB(), True, False, 'nb'),
-        (LogisticRegression(), False, False, 'lr'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_all'),
+        # (MultinomialNB(), True, False, 'nb'),
+        # (LogisticRegression(), False, False, 'lr'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=50, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob50_all'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
     ]
@@ -120,7 +120,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=50, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob50'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
@@ -131,7 +131,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_2014'),
         # (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_2014'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=50, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob50_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
@@ -153,8 +153,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     session_features_train, session_features_test = get_blend_features(
         classifiers_session_data,
         classes_count,
-        remove_sessions_columns(x_train), y_train,
-        remove_sessions_columns(x_test),
+        x_train, y_train,
+        x_test,
         n_seed)
 
     x_train = x_train.append_horizontal(session_features_train)
