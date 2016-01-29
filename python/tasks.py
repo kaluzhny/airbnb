@@ -151,8 +151,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session_data,
         classes_count,
-        remove_sessions_columns(x_train), y_train,
-        remove_sessions_columns(x_test),
+        x_train, y_train,
+        x_test,
         n_seed)
 
     print('x_train: ', x_train.data_.shape)
