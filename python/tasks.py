@@ -111,7 +111,7 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_session_data = [
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=200, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob200_all'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
     ]
@@ -120,7 +120,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=200, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob200'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
@@ -131,7 +131,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_2014'),
         # (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=200, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob200_2014'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
