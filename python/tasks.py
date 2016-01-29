@@ -109,7 +109,7 @@ class TestDataTask(Task):
 def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_all'),
+        (XGBClassifier(objective='multi:softprob', max_depth=5, nthread=n_threads, seed=n_seed), False, False, 'xg5softprob_all'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
     ]
@@ -118,7 +118,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob'),
+        (XGBClassifier(objective='multi:softprob', max_depth=5, nthread=n_threads, seed=n_seed), False, False, 'xg5softprob'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
@@ -129,7 +129,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_2014'),
         # (LogisticRegression(), False, False, 'lr_2014'),
         # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_2014_32'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob_2014'),
+        (XGBClassifier(objective='multi:softprob', max_depth=5, nthread=n_threads, seed=n_seed), False, False, 'xg5softprob_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
         # (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
         # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_2014'),
