@@ -150,6 +150,14 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
 
+    y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
+    session_features_3out_train, session_features_3out_test = get_blend_features(
+        classifiers_session_data,
+        3,
+        x_train, y_train_3out,
+        x_test,
+        n_seed)
+
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session_data,
         classes_count,
@@ -169,6 +177,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         classes_count,
         x_train_sessions, y_train_sessions, x_test,
         n_seed)
+
+    x_train_sessions = x_train_sessions.append_horizontal(session_features_3out_train.filter_rows_by_ids(x_train_sessions.ids_))
+    x_test = x_test.append_horizontal(session_features_3out_test)
 
     x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_))
     x_test = x_test.append_horizontal(no_session_features_test)
@@ -196,7 +207,6 @@ class CrossValidationScoreTask(Task):
 
         # train
         x_train, y_train = TrainingDataTask(self.task_core).run()
-
 
         # split
         train_idxs, test_idxs = list(StratifiedShuffleSplit(y_train, 1, test_size=self.task_core.cv_ratio,

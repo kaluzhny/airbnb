@@ -23,15 +23,15 @@ def ndcg5_eval(predictions, true_values):
     return 'ndcg5', score_eval
 
 
-def score(probabilities, y):
+def score(probabilities, y, max_classes=5):
     assert(probabilities.shape[0] == y.shape[0])
     count = probabilities.shape[0]
     scores = np.zeros(count)
     for i in range(count):
         truth = y[i]
-        predicted_i = np.argsort(probabilities[i])[::-1][:5]
-        predicted_i_v = np.zeros(5, dtype=np.int32) + (predicted_i == truth)
-        scores[i] = ndcg_at_k(predicted_i_v)
+        predicted_i = np.argsort(probabilities[i])[::-1][:max_classes]
+        predicted_i_v = np.zeros(max_classes, dtype=np.int32) + (predicted_i == truth)
+        scores[i] = ndcg_at_k(predicted_i_v, max_classes)
     return np.average(scores)
 
 

@@ -108,7 +108,7 @@ def train_blend_feature(classifier, scale, x, y, classes_count, random_state):
 
         # score
         y_blend_test = y[test_idx]
-        scores.append(score(y_blend_predicted, y_blend_test))
+        scores.append(score(y_blend_predicted, y_blend_test, max_classes=min(classes_count, 5)))
 
     print('feature score: ', np.average(scores))
 
