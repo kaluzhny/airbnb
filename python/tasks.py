@@ -146,6 +146,18 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     assert(x_train.columns_ == x_test.columns_)
     print_columns(x_train.columns_)
 
+    classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
+
+    session_features_train, session_features_test = get_blend_features(
+        classifiers_session_data,
+        classes_count,
+        x_train, y_train,
+        x_test,
+        n_seed)
+
+    x_train = x_train.append_horizontal(session_features_train)
+    x_test = x_test.append_horizontal(session_features_test)
+
     print('Predicting all features...')
     print_columns(x_train.columns_)
     probabilities = simple_predict(clone(classifier), x_train, y_train, x_test)
