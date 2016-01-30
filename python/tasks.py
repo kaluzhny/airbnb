@@ -150,7 +150,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     assert(x_train.columns_ == x_test.columns_)
     print_columns(x_train.columns_)
 
-    x_train, x_test = add_tsne_features(x_train, x_test)
+    #x_train, x_test = add_tsne_features(x_train, x_test)
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
