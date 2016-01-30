@@ -4,6 +4,7 @@ import math
 from datetime import date
 from sklearn.decomposition import PCA
 from dataset import DataSet
+from sklearn.manifold import TSNE
 
 
 def gender_idx(gender):
@@ -31,7 +32,7 @@ def date_diff(y1, m1, d1, y2, m2, d2):
 def make_one_hot(df, feature, values=None, test_columns=None, use_threshold=False):
     dummy_df = pd.get_dummies(df[feature], prefix=feature)
     if values is not None:
-        dummy_df = dummy_df[[feature + '_' + value for value in values]]
+        dummy_df = dummy_df[[feature + '_' + value + '_bin' for value in values]]
     return pd.concat((df, dummy_df), axis=1)
 
 
@@ -52,6 +53,11 @@ def do_pca(x):
     pca.fit(x)
     print('variance_ratio: ', pca.explained_variance_ratio_)
     return pca
+
+
+def get_one_hot_columns(x):
+    new_columns = [column for column in x.columns_ if not column.endswith('_bin')]
+    return x.filter_columns(new_columns)
 
 
 def remove_sessions_columns(x):
@@ -101,6 +107,33 @@ def sync_columns_2(x_1, x_2):
     return x_1.filter_columns(columns), x_2.filter_columns(columns)
 
 
+def add_tsne_features(x_train, x_test):
+    print('add_tsne_features <<')
+
+    x_train_data = x_train.data_
+    x_test_data = x_test.data_
+
+    x = np.vstack((x_train_data, x_test_data))
+
+    print('applying pca...')
+    pca = PCA(n_components=25)
+    x_pca = pca.fit_transform(x)
+
+    print('applying t-SNE...')
+    tsne_model = TSNE(n_components=2, random_state=0)
+    x_tsne = tsne_model.fit_transform(x_pca)
+    x_train_data = np.hstack((x_train_data, x_tsne[:x_train_data.shape[0], :]))
+    x_test_data = np.hstack((x_test_data, x_tsne[-x_test_data.shape[0]:, :]))
+
+    assert(x_train.columns_ == x_test.columns_)
+    columns = x_train.columns_ + ['tsne_1', 'tsne_2']
+    x_train = DataSet(x_train.ids_, columns, x_train_data)
+    x_test = DataSet(x_test.ids_, columns, x_test_data)
+
+    print('add_tsne_features >>')
+    return x_train, x_test
+
+
 def add_features(data_df):
     print('add_features <<')
     data_df = data_df.copy()
@@ -108,19 +141,11 @@ def add_features(data_df):
     data_df['age'] = data_df.apply(
         lambda r: 2015 - r['age'] if (np.isfinite(r['age']) & (r['age'] >= 1900) & (r['age'] < 2000)) else r['age'], axis=1)
     data_df['has_age'] = data_df.apply(lambda r: 0 if pd.isnull(r['age']) or r['age'] <= 16 or r['age'] >= 80 else 1, axis=1)
-
     data_df['age_imp'] = data_df.apply(lambda r: r['age'] if (np.isfinite(r['age']) & (r['age'] >= 16) & (r['age'] < 80)) else 0, axis=1)
 
     # mean_age = data_df[np.isfinite(data_df['age']) & (data_df['age'] < 100)]['age'].mean()
     # data_df['age_imp_mean'] = data_df.apply(
     #    lambda r: r['age'] if (np.isfinite(r['age']) & (r['age'] >= 16) & (r['age'] < 80)) else mean_age, axis=1)
-
-    # data_df['day_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[2]), axis=1)
-    # data_df['month_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[1]), axis=1)
-    # data_df['year_account_created'] = data_df.apply(lambda r: int(str(r['date_account_created']).split('-')[0]), axis=1)
-    # data_df['day_of_week'] = data_df.apply(lambda r: str_to_date(r['date_account_created']).weekday(), axis=1)
-    # data_df['day_of_year'] = data_df.apply(lambda r: 12 * r['month_account_created'] + r['day_account_created'], axis=1)
-    # data_df = data_df.drop(['day_account_created', 'month_account_created'], axis=1)
 
     data_df['day_first_active'] = data_df.apply(lambda r: int(str(r['timestamp_first_active'])[6:8]), axis=1)
     data_df['month_first_active'] = data_df.apply(lambda r: int(str(r['timestamp_first_active'])[4:6]), axis=1)
@@ -146,7 +171,8 @@ def add_features(data_df):
 
     drop_columns = ['date_account_created', 'timestamp_first_active', 'date_first_booking', 'gender', 'age',
                     'signup_method', 'language', 'affiliate_channel', 'affiliate_provider',
-                    'first_affiliate_tracked', 'signup_app', 'first_device_type', 'first_browser' ]
+                    'first_affiliate_tracked', 'signup_app', 'first_device_type', 'first_browser',
+                    'signup_flow' ]
 
     data_df = data_df.drop(drop_columns, axis=1)
 
@@ -410,6 +436,7 @@ def add_sessions_features(data_df, sessions_df):
     print('add_sessions_data >>')
 
     return data_df
+
 
 
 
