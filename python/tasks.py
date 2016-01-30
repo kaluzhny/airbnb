@@ -154,18 +154,18 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    session_features_3out_train, session_features_3out_test = get_blend_features(
-        classifiers_session_data,
-        3,
-        x_train, y_train_3out,
-        x_test,
-        n_seed)
-
     one_hot_features_train, one_hot_features_test = get_blend_features(
         [(LogisticRegression(), False, False, 'lr_hot')],
         3,
         get_one_hot_columns(x_train), y_train_3out,
         get_one_hot_columns(x_test),
+        n_seed)
+
+    session_features_3out_train, session_features_3out_test = get_blend_features(
+        classifiers_session_data,
+        3,
+        x_train, y_train_3out,
+        x_test,
         n_seed)
 
     no_session_features_train, no_session_features_test = get_blend_features(
