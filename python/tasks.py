@@ -61,7 +61,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                , max_rows=25000
+                                #, max_rows=25000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -87,7 +87,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                , max_rows=25000
+                                #, max_rows=25000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
