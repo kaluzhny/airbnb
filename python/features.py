@@ -56,7 +56,7 @@ def do_pca(x):
 
 
 def get_one_hot_columns(x):
-    new_columns = [column for column in x.columns_ if not column.endswith('_bin')]
+    new_columns = [column for column in x.columns_ if column.endswith('_bin')]
     return x.filter_columns(new_columns)
 
 
