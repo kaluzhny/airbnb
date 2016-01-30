@@ -30,7 +30,7 @@ def date_diff(y1, m1, d1, y2, m2, d2):
 
 
 def make_one_hot(df, feature, values=None, test_columns=None, use_threshold=False):
-    dummy_df = pd.get_dummies(df[feature], prefix=feature)
+    dummy_df = pd.get_dummies(df[feature], prefix='bin_'+feature)
     if values is not None:
         dummy_df = dummy_df[[feature + '_' + value for value in values]]
     return pd.concat((df, dummy_df), axis=1)
@@ -158,16 +158,16 @@ def add_features(data_df):
         lambda r: 12 * r['month_first_active'] + r['day_first_active'], axis=1)
     # data_df = data_df.drop(['year_account_created', 'year_first_active'], axis=1)
 
-    data_df = make_one_hot(data_df, 'bin_language')
-    data_df = make_one_hot(data_df, 'bin_gender')
-    data_df = make_one_hot(data_df, 'bin_first_device_type')
-    data_df = make_one_hot(data_df, 'bin_affiliate_channel')
-    data_df = make_one_hot(data_df, 'bin_affiliate_provider')
-    data_df = make_one_hot(data_df, 'bin_first_affiliate_tracked')
-    data_df = make_one_hot(data_df, 'bin_signup_app')
-    data_df = make_one_hot(data_df, 'bin_signup_method')
-    data_df = make_one_hot(data_df, 'bin_first_browser')
-    data_df = make_one_hot(data_df, 'bin_signup_flow')
+    data_df = make_one_hot(data_df, 'language')
+    data_df = make_one_hot(data_df, 'gender')
+    data_df = make_one_hot(data_df, 'first_device_type')
+    data_df = make_one_hot(data_df, 'affiliate_channel')
+    data_df = make_one_hot(data_df, 'affiliate_provider')
+    data_df = make_one_hot(data_df, 'first_affiliate_tracked')
+    data_df = make_one_hot(data_df, 'signup_app')
+    data_df = make_one_hot(data_df, 'signup_method')
+    data_df = make_one_hot(data_df, 'first_browser')
+    data_df = make_one_hot(data_df, 'signup_flow')
 
     drop_columns = ['date_account_created', 'timestamp_first_active', 'date_first_booking', 'gender', 'age',
                     'signup_method', 'language', 'affiliate_channel', 'affiliate_provider',
