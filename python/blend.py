@@ -8,22 +8,21 @@ from scores import ndcg5_eval, print_xgboost_scores, score
 from sklearn.preprocessing import StandardScaler
 
 
-n_folds = 4
-
-
 def get_blend_feature(classifier, scale, classes_count,
                       x_train, y_train, x_test, feature_prefix,
-                      random_state):
+                      random_state,
+                      n_folds):
     assert(x_train.columns_ == x_test.columns_)
 
-    train_blend_feature_result = train_blend_feature(classifier, scale, x_train.data_, y_train, classes_count, random_state)
+    train_blend_feature_result = train_blend_feature(classifier, scale, x_train.data_, y_train,
+                                                     classes_count, random_state, n_folds)
     if scale:
         classifiers, scalers, feature_train_data = train_blend_feature_result
     else:
         classifiers, feature_train_data = train_blend_feature_result
         scalers = None
 
-    feature_test_data = predict_blend_feature(x_test.data_, classifiers, scalers, classes_count)
+    feature_test_data = predict_blend_feature(x_test.data_, classifiers, scalers, classes_count, n_folds)
     new_columns = [feature_prefix + str(i) for i in range(classes_count)]
 
     return DataSet(x_train.ids_, new_columns, feature_train_data),\
@@ -34,16 +33,7 @@ def apply_log(x):
     return DataSet(x.ids_, x.columns_, np.log(x.data_ + 2))
 
 
-def add_blend_feature(classifiers, classes_count, x_train, y_train, x_test, random_state):
-    x_train_featured = x_train
-    x_test_featured = x_test
-    features_train, features_test = get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state)
-    x_train_featured = x_train_featured.append_horizontal(features_train)
-    x_test_featured = x_test_featured.append_horizontal(features_test)
-    return x_train_featured, x_test_featured
-
-
-def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state):
+def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state, n_folds=4):
 
     features_train = None
     features_test = None
@@ -59,7 +49,7 @@ def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, ran
 
         feature_train, feature_test = get_blend_feature(classifier, scale, classes_count,
                                                         x_train, y_train, x_test, feature_prefix,
-                                                        random_state)
+                                                        random_state, n_folds)
 
         if features_train is None:
             assert(features_test is None)
@@ -72,7 +62,7 @@ def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, ran
     return features_train, features_test
 
 
-def train_blend_feature(classifier, scale, x, y, classes_count, random_state):
+def train_blend_feature(classifier, scale, x, y, classes_count, random_state, n_folds):
     classifiers = [clone(classifier) for i in range(n_folds)]
 
     if scale:
@@ -118,7 +108,7 @@ def train_blend_feature(classifier, scale, x, y, classes_count, random_state):
         return classifiers, blend_train
 
 
-def predict_blend_feature(x, classifiers, scalers, classes_count):
+def predict_blend_feature(x, classifiers, scalers, classes_count, n_folds):
     print('predict_blend_feature...')
     print('x shape: ', x.shape)
 

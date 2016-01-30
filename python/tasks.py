@@ -18,7 +18,7 @@ from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns,
     divide_by_has_sessions, sync_columns, sync_columns_2, add_sessions_features, print_columns, add_features,\
     add_tsne_features, get_one_hot_columns
 from probabilities import print_probabilities, correct_probs, adjust_test_data
-from blend import add_blend_feature, train_blend_feature, predict_blend_feature, simple_predict, get_blend_features
+from blend import train_blend_feature, predict_blend_feature, simple_predict, get_blend_features
 from dataset import DataSet
 
 
@@ -113,9 +113,9 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
-        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
+        # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
+        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_no_session_data = [
@@ -123,8 +123,8 @@ def get_model_classifiers(n_threads, n_seed):
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
+        # (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
+        # (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
@@ -150,17 +150,10 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     assert(x_train.columns_ == x_test.columns_)
     print_columns(x_train.columns_)
 
-    x_train, x_test = add_tsne_features(x_train, x_test)
+    #x_train, x_test = add_tsne_features(x_train, x_test)
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    one_hot_features_train, one_hot_features_test = get_blend_features(
-        [(LogisticRegression(), False, False, 'lr_hot')],
-        3,
-        get_one_hot_columns(x_train), y_train_3out,
-        get_one_hot_columns(x_test),
-        n_seed)
-
     session_features_3out_train, session_features_3out_test = get_blend_features(
         classifiers_session_data,
         3,
@@ -170,26 +163,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session_data,
-        3,
-        remove_sessions_columns(x_train), y_train_3out,
+        classes_count,
+        remove_sessions_columns(x_train), y_train,
         remove_sessions_columns(x_test),
         n_seed)
 
-    print('x_train: ', x_train.data_.shape)
-    print('x_test: ', x_test.data_.shape)
     x_train_sessions, y_train_sessions, x_train_no_sessions, y_train_no_sessions = divide_by_has_sessions(
         x_train, y_train)
-
-    print('x_train_sessions: ', x_train_sessions.data_.shape)
-    print('x_train_no_sessions: ', x_train_no_sessions.data_.shape)
-    session2014_features_train, session2014_features_test = get_blend_features(
-        classifiers_2014,
-        classes_count,
-        x_train_sessions, y_train_sessions, x_test,
-        n_seed)
-
-    x_train_sessions = x_train_sessions.append_horizontal(one_hot_features_train.filter_rows_by_ids(x_train_sessions.ids_))
-    x_test = x_test.append_horizontal(one_hot_features_test)
 
     x_train_sessions = x_train_sessions.append_horizontal(session_features_3out_train.filter_rows_by_ids(x_train_sessions.ids_))
     x_test = x_test.append_horizontal(session_features_3out_test)
@@ -197,8 +177,12 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_))
     x_test = x_test.append_horizontal(no_session_features_test)
 
-    x_train_sessions = x_train_sessions.append_horizontal(session2014_features_train)
-    x_test = x_test.append_horizontal(session2014_features_test)
+    print('checking before prediction...')
+    get_blend_features(
+        [(clone(classifier), False, False, 'aggr')],
+        classes_count,
+        x_train_sessions, y_train_sessions, x_test,
+        n_seed, n_folds=25)
 
     print('Predicting all features...')
     print_columns(x_train_sessions.columns_)
