@@ -112,14 +112,6 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_session_data = [
         (MultinomialNB(), True, False, 'nb'),
         (LogisticRegression(), False, False, 'lr'),
-        (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
-        (KNeighborsClassifier(n_neighbors=8, n_jobs=n_threads), False, True, 'knn_8'),
-        (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
-        (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_32'),
-        (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_128'),
-        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256'),
-        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
@@ -162,6 +154,18 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
+    session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
+        [
+            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
+            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
+            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
+            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
+        ],
+        3,
+        remove_sessions_columns(x_train), y_train_3out,
+        remove_sessions_columns(x_test),
+        n_seed)
+
     session_features_3out_train, session_features_3out_test = get_blend_features(
         classifiers_session_data,
         3,
@@ -175,6 +179,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         remove_sessions_columns(x_train), y_train,
         remove_sessions_columns(x_test),
         n_seed)
+
+    x_train = x_train.append_horizontal(session_features_3out_knn_train)
+    x_test = x_test.append_horizontal(session_features_3out_knn_test)
 
     x_train = x_train.append_horizontal(session_features_3out_train)
     x_test = x_test.append_horizontal(session_features_3out_test)
