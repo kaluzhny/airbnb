@@ -168,25 +168,22 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         remove_sessions_columns(x_test),
         n_seed)
 
-    x_train_sessions, y_train_sessions, x_train_no_sessions, y_train_no_sessions = divide_by_has_sessions(
-        x_train, y_train)
-
-    x_train_sessions = x_train_sessions.append_horizontal(session_features_3out_train.filter_rows_by_ids(x_train_sessions.ids_))
+    x_train = x_train.append_horizontal(session_features_3out_train)
     x_test = x_test.append_horizontal(session_features_3out_test)
 
-    x_train_sessions = x_train_sessions.append_horizontal(no_session_features_train.filter_rows_by_ids(x_train_sessions.ids_))
+    x_train = x_train.append_horizontal(no_session_features_train)
     x_test = x_test.append_horizontal(no_session_features_test)
 
     print('checking before prediction...')
     get_blend_features(
         [(clone(classifier), False, False, 'aggr')],
         classes_count,
-        x_train_sessions, y_train_sessions, x_test,
+        x_train, y_train, x_test,
         n_seed, n_folds=50)
 
     print('Predicting all features...')
-    print_columns(x_train_sessions.columns_)
-    probabilities = simple_predict(clone(classifier), x_train_sessions, y_train_sessions, x_test)
+    print_columns(x_train.columns_)
+    probabilities = simple_predict(clone(classifier), x_train, y_train, x_test)
 
     return probabilities
 
