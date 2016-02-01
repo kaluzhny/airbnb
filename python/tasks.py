@@ -12,6 +12,8 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTr
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.metrics import make_scorer
 
 from scores import ndcg_at_k, score, print_xgboost_scores, ndcg5_eval
 from features import make_one_hot, do_pca, str_to_date, remove_sessions_columns, remove_no_sessions_columns,\
@@ -61,7 +63,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=25000
+                                # , max_rows=25000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -87,7 +89,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=25000
+                                # , max_rows=25000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
@@ -115,7 +117,8 @@ def get_model_classifiers(n_threads, n_seed):
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        (GradientBoostingClassifier(random_state=n_seed), False, False, 'gbc'),
     ]
 
     classifiers_no_session_data = [
@@ -154,48 +157,68 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
-        [
-            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
-            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
-            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
-        ],
-        3,
-        remove_sessions_columns(x_train), y_train_3out,
-        remove_sessions_columns(x_test),
-        n_seed)
-    x_train = x_train.append_horizontal(session_features_3out_knn_train)
-    x_test = x_test.append_horizontal(session_features_3out_knn_test)
+    # session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
+    #     [
+    #         (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
+    #         (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
+    #         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
+    #         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
+    #     ],
+    #     3,
+    #     remove_sessions_columns(x_train), y_train_3out,
+    #     remove_sessions_columns(x_test),
+    #     n_seed)
+    # x_train = x_train.append_horizontal(session_features_3out_knn_train)
+    # x_test = x_test.append_horizontal(session_features_3out_knn_test)
 
-    session_features_3out_train, session_features_3out_test = get_blend_features(
-        classifiers_session_data,
-        3,
-        x_train, y_train_3out,
-        x_test,
-        n_seed)
-    x_train = x_train.append_horizontal(session_features_3out_train)
-    x_test = x_test.append_horizontal(session_features_3out_test)
+    # session_features_3out_train, session_features_3out_test = get_blend_features(
+    #     classifiers_session_data,
+    #     3,
+    #     x_train, y_train_3out,
+    #     x_test,
+    #     n_seed)
+    # x_train = x_train.append_horizontal(session_features_3out_train)
+    # x_test = x_test.append_horizontal(session_features_3out_test)
+    #
+    # no_session_features_train, no_session_features_test = get_blend_features(
+    #     classifiers_no_session_data,
+    #     classes_count,
+    #     remove_sessions_columns(x_train), y_train,
+    #     remove_sessions_columns(x_test),
+    #     n_seed)
+    # x_train = x_train.append_horizontal(no_session_features_train)
+    # x_test = x_test.append_horizontal(no_session_features_test)
 
-    no_session_features_train, no_session_features_test = get_blend_features(
-        classifiers_no_session_data,
-        classes_count,
-        remove_sessions_columns(x_train), y_train,
-        remove_sessions_columns(x_test),
-        n_seed)
-    x_train = x_train.append_horizontal(no_session_features_train)
-    x_test = x_test.append_horizontal(no_session_features_test)
+    # print('checking before prediction...')
+    # get_blend_features(
+    #     [(clone(classifier), False, False, 'aggr')],
+    #     classes_count,
+    #     x_train, y_train, x_test,
+    #     n_seed, n_folds=50)
 
-    print('checking before prediction...')
-    get_blend_features(
-        [(clone(classifier), False, False, 'aggr')],
-        classes_count,
-        x_train, y_train, x_test,
-        n_seed, n_folds=50)
+    xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
+    search_classifier = RandomizedSearchCV(
+        xgb_classifier,
+        {
+            'subsample': [0.6, 0.8, 1.0],
+            'learning_rate': [0.05, 0.1, 0.2],
+            'max_depth': [3, 4],
+        },
+        cv=5, n_iter=10,
+        verbose=10,
+        n_jobs=1,
+        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
+    )
+    search_classifier.fit(x_train.data_, y_train)
+
+    print('grid_scores_: ', search_classifier.grid_scores_)
+    print('best_score_: ', search_classifier.best_score_)
+    print('best_params_: ', search_classifier.best_params_)
 
     print('Predicting all features...')
     print_columns(x_train.columns_)
-    probabilities = simple_predict(clone(classifier), x_train, y_train, x_test)
+    #probabilities = simple_predict(clone(classifier), x_train, y_train, x_test)
+    probabilities = simple_predict(clone(search_classifier.best_estimator_), x_train, y_train, x_test)
 
     return probabilities
 
