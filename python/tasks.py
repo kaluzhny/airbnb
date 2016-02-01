@@ -157,54 +157,54 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    # session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
-    #     [
-    #         (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
-    #         (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
-    #         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-    #         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
-    #     ],
-    #     3,
-    #     remove_sessions_columns(x_train), y_train_3out,
-    #     remove_sessions_columns(x_test),
-    #     n_seed)
-    # x_train = x_train.append_horizontal(session_features_3out_knn_train)
-    # x_test = x_test.append_horizontal(session_features_3out_knn_test)
+    session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
+        [
+            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
+            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
+            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
+            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
+        ],
+        3,
+        remove_sessions_columns(x_train), y_train_3out,
+        remove_sessions_columns(x_test),
+        n_seed)
+    x_train = x_train.append_horizontal(session_features_3out_knn_train)
+    x_test = x_test.append_horizontal(session_features_3out_knn_test)
 
-    # session_features_3out_train, session_features_3out_test = get_blend_features(
-    #     classifiers_session_data,
-    #     3,
-    #     x_train, y_train_3out,
-    #     x_test,
-    #     n_seed)
-    # x_train = x_train.append_horizontal(session_features_3out_train)
-    # x_test = x_test.append_horizontal(session_features_3out_test)
-    #
-    # no_session_features_train, no_session_features_test = get_blend_features(
-    #     classifiers_no_session_data,
-    #     classes_count,
-    #     remove_sessions_columns(x_train), y_train,
-    #     remove_sessions_columns(x_test),
-    #     n_seed)
-    # x_train = x_train.append_horizontal(no_session_features_train)
-    # x_test = x_test.append_horizontal(no_session_features_test)
+    session_features_3out_train, session_features_3out_test = get_blend_features(
+        classifiers_session_data,
+        3,
+        x_train, y_train_3out,
+        x_test,
+        n_seed)
+    x_train = x_train.append_horizontal(session_features_3out_train)
+    x_test = x_test.append_horizontal(session_features_3out_test)
 
-    # print('checking before prediction...')
-    # get_blend_features(
-    #     [(clone(classifier), False, False, 'aggr')],
-    #     classes_count,
-    #     x_train, y_train, x_test,
-    #     n_seed, n_folds=50)
+    no_session_features_train, no_session_features_test = get_blend_features(
+        classifiers_no_session_data,
+        classes_count,
+        remove_sessions_columns(x_train), y_train,
+        remove_sessions_columns(x_test),
+        n_seed)
+    x_train = x_train.append_horizontal(no_session_features_train)
+    x_test = x_test.append_horizontal(no_session_features_test)
+
+    print('checking before prediction...')
+    get_blend_features(
+        [(clone(classifier), False, False, 'aggr')],
+        classes_count,
+        x_train, y_train, x_test,
+        n_seed, n_folds=50)
 
     xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     search_classifier = RandomizedSearchCV(
         xgb_classifier,
         {
-            'subsample': [0.6, 0.8, 1.0],
-            'learning_rate': [0.05, 0.1, 0.2],
-            'max_depth': [3, 4],
+            'subsample': [0.8, 1.0],
+            'learning_rate': [0.1, 0.1, 0.5],
+            'max_depth': [3, 4, 5],
         },
-        cv=5, n_iter=10,
+        cv=10, n_iter=10,
         verbose=10,
         n_jobs=1,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
