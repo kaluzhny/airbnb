@@ -252,7 +252,7 @@ class MakePredictionTask(Task):
         # x_train = x_train.filter_rows(perm_idxs)
         # y_train = y_train[perm_idxs]
 
-        x_test, x_train = sync_columns(x_test, x_train)
+        x_test, x_train = sync_columns_2(x_test, x_train)
 
         probabilities = run_model(x_train, y_train, x_test, classes_count, self.classifier,
                                   self.task_core.n_threads, self.task_core.n_seed)

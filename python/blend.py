@@ -8,6 +8,9 @@ from scores import ndcg5_eval, print_xgboost_scores, score
 from sklearn.preprocessing import StandardScaler
 
 
+n_folds_default = 4
+
+
 def get_blend_feature(classifier, scale, classes_count,
                       x_train, y_train, x_test, feature_prefix,
                       random_state,
@@ -33,7 +36,7 @@ def apply_log(x):
     return DataSet(x.ids_, x.columns_, np.log(x.data_ + 2))
 
 
-def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state, n_folds=4):
+def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state, n_folds=n_folds_default):
 
     features_train = None
     features_test = None
