@@ -63,7 +63,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                # , max_rows=25000
+                                #, max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -89,7 +89,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                # , max_rows=25000
+                                #, max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
@@ -209,7 +209,12 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_jobs=1,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
     )
-    search_classifier.fit(x_train.data_, y_train)
+    x_search = x_train.data_
+    y_search = y_train
+    perm = np.random.permutation(x_search.shape[0])
+    x_search = x_search[perm,:]
+    y_search = y_search[perm]
+    search_classifier.fit(x_search, y_search)
 
     print('grid_scores_: ', search_classifier.grid_scores_)
     print('best_score_: ', search_classifier.best_score_)
