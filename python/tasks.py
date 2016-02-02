@@ -114,7 +114,7 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_session_data = [
         (MultinomialNB(), True, False, 'nb'),
         (LogisticRegression(), False, False, 'lr'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
         (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
@@ -125,7 +125,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
@@ -189,12 +189,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train = x_train.append_horizontal(no_session_features_train)
     x_test = x_test.append_horizontal(no_session_features_test)
 
-    # print('checking before prediction...')
-    # get_blend_features(
-    #     [(clone(classifier), False, False, 'aggr')],
-    #     classes_count,
-    #     x_train, y_train, x_test,
-    #     n_seed, n_folds=50)
+    # use 2014 only for final training
+    x_train, y_train, _, _ = divide_by_has_sessions(
+        x_train, y_train)
 
     xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     search_classifier = RandomizedSearchCV(
