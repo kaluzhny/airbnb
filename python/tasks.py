@@ -189,12 +189,12 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train = x_train.append_horizontal(no_session_features_train)
     x_test = x_test.append_horizontal(no_session_features_test)
 
-    print('checking before prediction...')
-    get_blend_features(
-        [(clone(classifier), False, False, 'aggr')],
-        classes_count,
-        x_train, y_train, x_test,
-        n_seed, n_folds=50)
+    # print('checking before prediction...')
+    # get_blend_features(
+    #     [(clone(classifier), False, False, 'aggr')],
+    #     classes_count,
+    #     x_train, y_train, x_test,
+    #     n_seed, n_folds=50)
 
     xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     search_classifier = RandomizedSearchCV(
