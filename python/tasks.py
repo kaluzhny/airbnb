@@ -114,21 +114,21 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_session_data = [
         (MultinomialNB(), True, False, 'nb'),
         (LogisticRegression(), False, False, 'lr'),
+        (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
         (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
-        (GradientBoostingClassifier(random_state=n_seed), False, False, 'gbc'),
+        #(GradientBoostingClassifier(random_state=n_seed), False, False, 'gbc'),
     ]
 
     classifiers_no_session_data = [
-        # (MultinomialNB(), True, False, 'nb'),
-        # (LogisticRegression(), False, False, 'lr'),
-        # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
+        (MultinomialNB(), True, False, 'nb'),
+        (LogisticRegression(), False, False, 'lr'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
-        # (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
+        (AdaBoostClassifier(n_estimators=50, random_state=n_seed), False, False, 'ada50'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
@@ -159,10 +159,12 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
     session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
         [
-            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4'),
-            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16'),
-            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64'),
-            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256')
+            (KNeighborsClassifier(n_neighbors=2, n_jobs=n_threads), False, True, 'knn_2_3'),
+            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4_3'),
+            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16_3'),
+            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_3'),
+            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_3'),
+            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_512_3')
         ],
         3,
         remove_sessions_columns(x_train), y_train_3out,
@@ -193,15 +195,13 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train, y_train, _, _ = divide_by_has_sessions(
         x_train, y_train)
 
-    xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
-    search_classifier = RandomizedSearchCV(
+    xgb_classifier = XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed)
+    search_classifier = GridSearchCV(
         xgb_classifier,
         {
-            'subsample': [0.8, 1.0],
-            'learning_rate': [0.1, 0.1, 0.5],
-            'max_depth': [3, 4, 5],
+            'learning_rate': [0.025, 0.05, 0.1, 0.2, 0.3],
         },
-        cv=10, n_iter=10,
+        cv=10, #n_iter=10,
         verbose=10,
         n_jobs=1,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
