@@ -114,21 +114,21 @@ class TestDataTask(Task):
 def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
-        (MultinomialNB(), True, False, 'nb'),
-        (LogisticRegression(), False, False, 'lr'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
+        # (MultinomialNB(), True, False, 'nb'),
+        # (LogisticRegression(), False, False, 'lr'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
-        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_no_session_data = [
-        (MultinomialNB(), True, False, 'nb'),
-        (LogisticRegression(), False, False, 'lr'),
-        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.2, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
+        # (MultinomialNB(), True, False, 'nb'),
+        # (LogisticRegression(), False, False, 'lr'),
+        (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100'),
         (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
         (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
-        (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
+        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_2014 = [
@@ -148,21 +148,21 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
-        [
-            (KNeighborsClassifier(n_neighbors=2, n_jobs=n_threads), False, True, 'knn_2_3'),
-            (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4_3'),
-            (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16_3'),
-            (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_3'),
-            (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_3'),
-            (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_3')
-        ],
-        3,
-        remove_sessions_columns(x_train), y_train_3out,
-        remove_sessions_columns(x_test),
-        n_seed)
-    x_train = x_train.append_horizontal(session_features_3out_knn_train)
-    x_test = x_test.append_horizontal(session_features_3out_knn_test)
+    # session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
+    #     [
+    #         (KNeighborsClassifier(n_neighbors=2, n_jobs=n_threads), False, True, 'knn_2_3'),
+    #         (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4_3'),
+    #         (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16_3'),
+    #         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_3'),
+    #         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_3'),
+    #         (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_3')
+    #     ],
+    #     3,
+    #     remove_sessions_columns(x_train), y_train_3out,
+    #     remove_sessions_columns(x_test),
+    #     n_seed)
+    # x_train = x_train.append_horizontal(session_features_3out_knn_train)
+    # x_test = x_test.append_horizontal(session_features_3out_knn_test)
 
     session_features_3out_train, session_features_3out_test = get_blend_features(
         classifiers_session_data,
@@ -194,6 +194,27 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_seed)
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
+
+    xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
+    search_classifier = GridSearchCV(
+        xgb_classifier,
+        {
+            'max_depth': [3, 4, 5],
+        },
+        cv=10, #n_iter=10,
+        verbose=10,
+        n_jobs=1,
+        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
+    )
+    x_search = x_train.data_
+    y_search = y_train
+    perm = np.random.permutation(x_search.shape[0])
+    x_search = x_search[perm,:]
+    y_search = y_search[perm]
+    search_classifier.fit(x_search, y_search)
+    print('grid_scores_: ', search_classifier.grid_scores_)
+    print('best_score_: ', search_classifier.best_score_)
+    print('best_params_: ', search_classifier.best_params_)
 
     xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.1, max_depth=4, nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=50, random_state=n_seed, verbose=10)
