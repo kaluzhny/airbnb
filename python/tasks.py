@@ -170,8 +170,6 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         x_train, y_train_3out,
         x_test,
         n_seed)
-    x_train = x_train.append_horizontal(session_features_3out_train)
-    x_test = x_test.append_horizontal(session_features_3out_test)
 
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session_data,
@@ -179,6 +177,10 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         remove_sessions_columns(x_train), y_train,
         remove_sessions_columns(x_test),
         n_seed)
+
+    x_train = x_train.append_horizontal(session_features_3out_train)
+    x_test = x_test.append_horizontal(session_features_3out_test)
+
     x_train = x_train.append_horizontal(no_session_features_train)
     x_test = x_test.append_horizontal(no_session_features_test)
 
