@@ -139,6 +139,24 @@ def get_model_classifiers(n_threads, n_seed):
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
 
 
+def do_grid_search(x_search, y_search, classifier, param_grid):
+    search_classifier = GridSearchCV(
+        classifier,
+        param_grid,
+        cv=10,
+        verbose=10,
+        n_jobs=1,
+        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
+    )
+    perm = np.random.permutation(x_search.shape[0])
+    x_search = x_search[perm,:]
+    y_search = y_search[perm]
+    search_classifier.fit(x_search, y_search)
+    print('grid_scores_: ', search_classifier.grid_scores_)
+    print('best_score_: ', search_classifier.best_score_)
+    print('best_params_: ', search_classifier.best_params_)
+
+
 def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_seed):
     print('printing train_columns/test_columns')
     assert(x_train.columns_ == x_test.columns_)
@@ -148,22 +166,6 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
     y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    # session_features_3out_knn_train, session_features_3out_knn_test = get_blend_features(
-    #     [
-    #         (KNeighborsClassifier(n_neighbors=2, n_jobs=n_threads), False, True, 'knn_2_3'),
-    #         (KNeighborsClassifier(n_neighbors=4, n_jobs=n_threads), False, True, 'knn_4_3'),
-    #         (KNeighborsClassifier(n_neighbors=16, n_jobs=n_threads), False, True, 'knn_16_3'),
-    #         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_3'),
-    #         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_3'),
-    #         (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_3')
-    #     ],
-    #     3,
-    #     remove_sessions_columns(x_train), y_train_3out,
-    #     remove_sessions_columns(x_test),
-    #     n_seed)
-    # x_train = x_train.append_horizontal(session_features_3out_knn_train)
-    # x_test = x_test.append_horizontal(session_features_3out_knn_test)
-
     session_features_3out_train, session_features_3out_test = get_blend_features(
         classifiers_session_data,
         3,
@@ -189,37 +191,55 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         x_train, y_train)
 
     features_2014_train, features_2014_test = get_blend_features(
-        classifiers_no_session_data,
+        classifiers_2014,
         classes_count,
         x_train, y_train,
         x_test,
         n_seed)
+
+    print('grid search for rfc (n_estimators)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        RandomForestClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
+        {
+            'n_estimators': [10, 50, 100, 200],
+        })
+    print('grid search for rfc (criterion)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        RandomForestClassifier(n_estimators=100,n_jobs=n_threads, random_state=n_seed),
+        {
+            'criterion': ['gini', 'entropy'],
+        })
+
+    print('grid search for etc (n_estimators)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        ExtraTreesClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
+        {
+            'n_estimators': [10, 50, 100, 200],
+        })
+    print('grid search for etc (criterion)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        ExtraTreesClassifier(n_estimators=100,n_jobs=n_threads, random_state=n_seed),
+        {
+            'criterion': ['gini', 'entropy'],
+        })
+
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
 
-    xgb_classifier = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
-    search_classifier = GridSearchCV(
-        xgb_classifier,
+    print('grid search for xgb...')
+    do_grid_search(
+        x_train.data_, y_train,
+        XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
         {
-            'max_depth': [3, 4, 5],
-        },
-        cv=10, #n_iter=10,
-        verbose=10,
-        n_jobs=1,
-        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
-    )
-    x_search = x_train.data_
-    y_search = y_train
-    perm = np.random.permutation(x_search.shape[0])
-    x_search = x_search[perm,:]
-    y_search = y_search[perm]
-    search_classifier.fit(x_search, y_search)
-    print('grid_scores_: ', search_classifier.grid_scores_)
-    print('best_score_: ', search_classifier.best_score_)
-    print('best_params_: ', search_classifier.best_params_)
+            'max_depth': [2, 3, 4],
+        })
 
-    xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.1, max_depth=4, nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=50, random_state=n_seed, verbose=10)
+    xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.1, max_depth=3, nthread=n_threads, seed=n_seed)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
     return probabilities
