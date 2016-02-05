@@ -205,7 +205,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     print('calculating cv...')
     cv_scores = cross_val_score(
-        xgb, x_train, y_train,
+        xgb, x_train.data_, y_train,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True),
         cv=10, verbose=10)
     print('cv_scores: ', cv_scores, '; mean: ', np.mean(cv_scores))
