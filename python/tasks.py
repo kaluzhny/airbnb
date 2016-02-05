@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from collections import namedtuple
 from data import read_from_csv
-from sklearn.cross_validation import train_test_split, StratifiedShuffleSplit
+from sklearn.cross_validation import train_test_split, StratifiedShuffleSplit, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from xgboost.sklearn import XGBClassifier
 from sklearn.base import clone
@@ -125,15 +125,15 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_no_session_data = [
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400'),
+        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=2, random_state=n_seed), False, False, 'rfc400'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=2, random_state=n_seed), False, False, 'etc400'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=2, seed=n_seed), False, False, 'xg3softprob100'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_2014 = [
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_2014'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
+        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=2, random_state=n_seed), False, False, 'rfc400_e_2014'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=2, random_state=n_seed), False, False, 'etc400_e_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -202,6 +202,14 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.1, max_depth=3, nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
+
+    print('calculating cv...')
+    cv_scores = cross_val_score(
+        xgb, x_train, y_train,
+        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True),
+        cv=10, verbose=10)
+    print('cv_scores: ', cv_scores, '; mean: ', np.mean(cv_scores))
+
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
     return probabilities
