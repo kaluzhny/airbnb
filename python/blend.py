@@ -51,8 +51,8 @@ def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, ran
             x_train = apply_log(x_train)
             x_test = apply_log(x_test)
 
-        # classifier = BaggingClassifier(base_estimator=classifier, n_estimators=10,
-        #                                random_state=random_state, verbose=10)
+        classifier = BaggingClassifier(base_estimator=classifier, n_estimators=10,
+                                       random_state=random_state, verbose=10)
 
         feature_train, feature_test = get_blend_feature(classifier, scale, classes_count,
                                                         x_train, y_train, x_test, feature_prefix,

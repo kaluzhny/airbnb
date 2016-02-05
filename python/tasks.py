@@ -117,8 +117,8 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc_all'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_all'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_all'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
+        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_all'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
@@ -127,16 +127,16 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400'),
+        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=2, seed=n_seed), False, False, 'xg3softprob100'),
         # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_2014 = [
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_2014'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
+        (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
+        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -204,7 +204,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_test = x_test.append_horizontal(features_2014_test)
 
     xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.1, max_depth=3, nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=50, random_state=n_seed, verbose=10)
 
     print('calculating cv...')
     cv_scores = cross_val_score(
@@ -212,6 +212,14 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True),
         cv=10, verbose=10)
     print('cv_scores: ', cv_scores, '; mean: ', np.mean(cv_scores))
+
+    print('grid search for xgb (depth)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
+        {
+            'learning_rate': [0.1, 0.15, 0.2],
+        })
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
