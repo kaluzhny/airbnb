@@ -65,7 +65,7 @@ class TrainingDataTask(Task):
 
     def load_train_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.data_file, self.task_core.n_seed
-                                #, max_rows=50000
+                                , max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_train_' + str(len(data_df.index)) + '.p')
@@ -91,7 +91,7 @@ class TrainingDataTask(Task):
 class TestDataTask(Task):
     def load_test_data(self, sessions_df):
         data_df = read_from_csv(self.task_core.test_data_file, self.task_core.n_seed
-                                #, max_rows=50000
+                                , max_rows=50000
                                 )
 
         cache_file = os.path.join(self.task_core.cache_dir, 'features_test_' + str(len(data_df.index)) + '.p')
@@ -116,30 +116,21 @@ def get_model_classifiers(n_threads, n_seed):
     classifiers_session_data = [
         # (MultinomialNB(), True, False, 'nb'),
         # (LogisticRegression(), False, False, 'lr'),
-        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc_all'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_all'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_all'),
+        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=50, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_all'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_all'),
+        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_all'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_all'),
+        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_all'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_all'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
-    ]
-
-    classifiers_no_session_data = [
-        # (MultinomialNB(), True, False, 'nb'),
-        # (LogisticRegression(), False, False, 'lr'),
-        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc'),
-        (RandomForestClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200'),
-        (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=2, seed=n_seed), False, False, 'xg3softprob100'),
-        # (AdaBoostClassifier(n_estimators=100, random_state=n_seed), False, False, 'ada100'),
     ]
 
     classifiers_2014 = [
-        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
-        (RandomForestClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
-        (ExtraTreesClassifier(n_estimators=200, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
+        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=50, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
+        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
     ]
 
-    return classifiers_session_data, classifiers_no_session_data, classifiers_2014
+    return classifiers_session_data, classifiers_2014
 
 
 def do_grid_search(x_search, y_search, classifier, param_grid):
@@ -160,34 +151,24 @@ def do_grid_search(x_search, y_search, classifier, param_grid):
     print('best_params_: ', search_classifier.best_params_)
 
 
-def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_seed):
+def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_seed, cache_dir):
     print('printing train_columns/test_columns')
     assert(x_train.columns_ == x_test.columns_)
     print_columns(x_train.columns_)
 
     #x_train, x_test = add_tsne_features(x_train, x_test)
 
-    classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
-    y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
-    session_features_3out_train, session_features_3out_test = get_blend_features(
+    classifiers_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
+    session_features_train, session_features_test = get_blend_features(
         classifiers_session_data,
-        3,
-        x_train, y_train_3out,
-        x_test,
-        n_seed)
-
-    no_session_features_train, no_session_features_test = get_blend_features(
-        classifiers_no_session_data,
         classes_count,
-        remove_sessions_columns(x_train), y_train,
-        remove_sessions_columns(x_test),
-        n_seed)
+        x_train, y_train,
+        x_test,
+        n_seed,
+        cache_dir=cache_dir)
 
-    x_train = x_train.append_horizontal(session_features_3out_train)
-    x_test = x_test.append_horizontal(session_features_3out_test)
-
-    x_train = x_train.append_horizontal(no_session_features_train)
-    x_test = x_test.append_horizontal(no_session_features_test)
+    x_train = x_train.append_horizontal(session_features_train)
+    x_test = x_test.append_horizontal(session_features_test)
 
     # use 2014 only for final training
     x_train, y_train, _, _ = divide_by_has_sessions(
@@ -198,7 +179,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         classes_count,
         x_train, y_train,
         x_test,
-        n_seed)
+        n_seed,
+        cache_dir=cache_dir)
 
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
@@ -253,7 +235,8 @@ class CrossValidationScoreTask(Task):
 
         print('running prediction model')
         probabilities = run_model(x_train, y_train, x_test, classes_count, self.classifier,
-                                  self.task_core.n_threads, self.task_core.n_seed)
+                                  self.task_core.n_threads, self.task_core.n_seed,
+                                  self.task_core.cache_dir)
 
         print_probabilities(probabilities)
         s = score(probabilities, y_test)
@@ -281,7 +264,8 @@ class MakePredictionTask(Task):
         x_test, x_train = sync_columns_2(x_test, x_train)
 
         probabilities = run_model(x_train, y_train, x_test, classes_count, self.classifier,
-                                  self.task_core.n_threads, self.task_core.n_seed)
+                                  self.task_core.n_threads, self.task_core.n_seed,
+                                  self.task_core.cache_dir)
 
         print_probabilities(probabilities)
 

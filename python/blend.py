@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from sklearn.base import clone
 from sklearn.cross_validation import StratifiedKFold
@@ -10,6 +11,33 @@ from sklearn.ensemble import BaggingClassifier
 
 
 n_folds_default = 4
+
+def get_blend_feature_or_load_from_cache(
+        classifier, scale, classes_count,
+        x_train, y_train, x_test, feature_prefix,
+        random_state,
+        cache_dir, n_folds, bagging_count):
+
+    file_suffix = '_cl' + str(classes_count) + '_' + feature_prefix + 'fld' + str(n_folds) + '_bag' + str(bagging_count)
+    cache_file_train = os.path.join(cache_dir, 'f_train_' + str(len(x_train.ids_)) + file_suffix + '.p')
+    cache_file_test = os.path.join(cache_dir, 'f_test_' + str(len(x_test.ids_)) + file_suffix + '.p')
+
+    if os.path.isfile(cache_file_train) and os.path.isfile(cache_file_test):
+        print('loading features ' + feature_prefix + ' from files')
+        feature_train = DataSet.load_from_file(cache_file_train)
+        feature_test = DataSet.load_from_file(cache_file_test)
+    else:
+        feature_train, feature_test = get_blend_feature(
+            classifier, scale, classes_count,
+            x_train, y_train, x_test, feature_prefix,
+            random_state,
+            n_folds)
+        print('saving features ' + feature_prefix + ' to files')
+        DataSet.save_to_file(feature_train, cache_file_train)
+        DataSet.save_to_file(feature_test, cache_file_test)
+
+
+    return feature_train, feature_test
 
 
 def get_blend_feature(classifier, scale, classes_count,
@@ -37,7 +65,8 @@ def apply_log(x):
     return DataSet(x.ids_, x.columns_, np.log(x.data_ + 2))
 
 
-def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state, n_folds=n_folds_default):
+def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, random_state, cache_dir,
+                       n_folds=n_folds_default):
 
     features_train = None
     features_test = None
@@ -51,12 +80,14 @@ def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, ran
             x_train = apply_log(x_train)
             x_test = apply_log(x_test)
 
-        classifier = BaggingClassifier(base_estimator=classifier, n_estimators=10,
-                                       random_state=random_state, verbose=10)
+        bagging_count = 0
+        if bagging_count > 0:
+            classifier = BaggingClassifier(base_estimator=classifier, n_estimators=10,
+                                           random_state=random_state, verbose=10)
 
-        feature_train, feature_test = get_blend_feature(classifier, scale, classes_count,
+        feature_train, feature_test = get_blend_feature_or_load_from_cache(classifier, scale, classes_count,
                                                         x_train, y_train, x_test, feature_prefix,
-                                                        random_state, n_folds)
+                                                        random_state, cache_dir, n_folds, bagging_count)
 
         if features_train is None:
             assert(features_test is None)
