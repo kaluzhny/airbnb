@@ -151,8 +151,8 @@ def get_model_classifiers(n_threads, n_seed):
 
     classifiers_2014 = [
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc200_e_2014'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc200_e_2014'),
+        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_2014'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -166,11 +166,11 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     #x_train, x_test = add_tsne_features(x_train, x_test)
 
     classifiers_session_data, classifiers_no_session_data, classifiers_2014 = get_model_classifiers(n_threads, n_seed)
-
+    y_train_3out = convert_outputs_to_others(y_train, ['FR', 'CA', 'GB', 'ES', 'IT', 'PT', 'NL', 'DE', 'AU'])
     session_features_train, session_features_test = get_blend_features(
         classifiers_session_data,
-        classes_count,
-        x_train, y_train,
+        3,
+        x_train, y_train_3out,
         x_test,
         n_seed,
         cache_dir=cache_dir)
@@ -219,7 +219,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         x_train.data_, y_train,
         XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
         {
-            'learning_rate': [0.1, 0.15, 0.2],
+            'learning_rate': [0.1, 0.15],
         })
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
