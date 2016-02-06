@@ -111,6 +111,17 @@ class TestDataTask(Task):
         return self.load_test_data(sessions_df)
 
 
+def do_cv(x_cv, y_cv, classifier, n_fold):
+    perm = np.random.permutation(x_cv.shape[0])
+    x_cv = x_cv[perm,:]
+    y_cv = y_cv[perm]
+    cv_scores = cross_val_score(
+        classifier, x_cv, y_cv,
+        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True),
+        cv=n_fold, verbose=10)
+    print('cv_scores: ', cv_scores, '; mean: ', np.mean(cv_scores))
+
+
 def do_grid_search(x_search, y_search, classifier, param_grid):
     search_classifier = GridSearchCV(
         classifier,
@@ -204,23 +215,11 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
 
-    xgb = XGBClassifier(objective='multi:softprob', learning_rate=0.15, max_depth=3, nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=50, random_state=n_seed, verbose=10)
+    xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=25, random_state=n_seed, verbose=10)
 
     print('calculating cv...')
-    cv_scores = cross_val_score(
-        xgb, x_train.data_, y_train,
-        scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True),
-        cv=10, verbose=10)
-    print('cv_scores: ', cv_scores, '; mean: ', np.mean(cv_scores))
-
-    print('grid search for xgb (rate)...')
-    do_grid_search(
-        x_train.data_, y_train,
-        XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
-        {
-            'learning_rate': [0.1, 0.15],
-        })
+    do_cv(x_train.data_, y_train, xgb, 25)
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
