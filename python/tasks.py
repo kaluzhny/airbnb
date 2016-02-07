@@ -144,24 +144,30 @@ def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
         # (MultinomialNB(), True, False, 'nb_all'),
-        # (LogisticRegression(), False, False, 'lr_all'),
+        (LogisticRegression(random_state=n_seed), True, False, 'lr_all'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_all'),
         (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_all'),
         (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_all'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_all'),
+        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_all'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_all'),
     ]
 
     classifiers_no_session_data = [
         # (MultinomialNB(), True, False, 'nb_ns'),
-        # (LogisticRegression(), False, False, 'lr_ns'),
+        (LogisticRegression(random_state=n_seed), True, False, 'lr_ns'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_ns'),
         (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_ns'),
         (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_ns'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_ns'),
+        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_ns'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_ns'),
     ]
 
     classifiers_2014 = [
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
+        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_2014'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_2014'),
         (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_2014'),
         (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
     ]
@@ -188,8 +194,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
 
     no_session_features_train, no_session_features_test = get_blend_features(
         classifiers_no_session_data,
-        classes_count,
-        remove_sessions_columns(x_train), y_train,
+        3,
+        remove_sessions_columns(x_train), y_train_3out,
         remove_sessions_columns(x_test),
         n_seed,
         cache_dir=cache_dir)
