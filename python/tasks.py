@@ -170,9 +170,9 @@ def get_model_classifiers(n_threads, n_seed):
         (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_2014'),
         (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_2014'),
-        (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_32_2014'),
-        (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_2014'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_128_2014'),
+        # (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_32_2014'),
+        # (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_2014'),
+        # (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_128_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -227,8 +227,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
 
-    print('calculating cv...')
-    do_cv(x_train.data_, y_train, xgb, 50)
+    # print('calculating cv...')
+    # do_cv(x_train.data_, y_train, xgb, 50)
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
