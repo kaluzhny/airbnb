@@ -146,10 +146,10 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_all'),
         (LogisticRegression(random_state=n_seed), True, False, 'lr_all'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_all'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_all'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_all'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_all'),
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_all'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_all'),
+        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_all'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_all'),
+        (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_all'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_all'),
     ]
 
@@ -157,19 +157,19 @@ def get_model_classifiers(n_threads, n_seed):
         # (MultinomialNB(), True, False, 'nb_ns'),
         (LogisticRegression(random_state=n_seed), True, False, 'lr_ns'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_ns'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_ns'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_ns'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_ns'),
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_ns'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_ns'),
+        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_ns'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_ns'),
+        (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_ns'),
         (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg3softprob100_ns'),
     ]
 
     classifiers_2014 = [
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
-        (RandomForestClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_2014'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_2014'),
-        (RandomForestClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc400_e_2014'),
-        (ExtraTreesClassifier(n_estimators=400, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_e_2014'),
+        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
+        (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_2014'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -218,36 +218,11 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_seed,
         cache_dir=cache_dir)
 
-    print('grid search for ada (n_estimators)...')
-    do_grid_search(
-        x_train.data_, y_train,
-        AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed),
-        {
-            'n_estimators': [25, 50, 100],
-        })
-
-    print('grid search for rfc (n_estimators)...')
-    do_grid_search(
-        x_train.data_, y_train,
-        RandomForestClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
-        {
-            'n_estimators': [400, 500, 600],
-        })
-    print('grid search for rfc (criterion)...')
-
-    print('grid search for etc (n_estimators)...')
-    do_grid_search(
-        x_train.data_, y_train,
-        ExtraTreesClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
-        {
-            'n_estimators': [400, 500, 600],
-        })
-
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
 
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=50, random_state=n_seed, verbose=10)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
 
     print('calculating cv...')
     do_cv(x_train.data_, y_train, xgb, 50)
