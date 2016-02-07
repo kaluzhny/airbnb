@@ -218,6 +218,23 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_seed,
         cache_dir=cache_dir)
 
+    print('grid search for rfc (n_estimators)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        RandomForestClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
+        {
+            'n_estimators': [400, 500],
+        })
+    print('grid search for rfc (criterion)...')
+
+    print('grid search for etc (n_estimators)...')
+    do_grid_search(
+        x_train.data_, y_train,
+        ExtraTreesClassifier(criterion='gini', n_jobs=n_threads, random_state=n_seed),
+        {
+            'n_estimators': [400, 500],
+        })
+
     x_train = x_train.append_horizontal(features_2014_train)
     x_test = x_test.append_horizontal(features_2014_test)
 
