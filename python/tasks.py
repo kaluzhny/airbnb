@@ -173,8 +173,8 @@ def get_model_classifiers(n_threads, n_seed):
         (KNeighborsClassifier(n_neighbors=32, n_jobs=n_threads), False, True, 'knn_32_2014'),
         (KNeighborsClassifier(n_neighbors=64, n_jobs=n_threads), False, True, 'knn_64_2014'),
         (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_128_2014'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_256_2014'),
-        (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_512_2014'),
+        (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_2014'),
+        (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
