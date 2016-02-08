@@ -165,6 +165,8 @@ def get_model_classifiers(n_threads, n_seed):
     ]
 
     classifiers_2014 = [
+        (MultinomialNB(), False, True, 'nb_scale_2014'),
+        (LogisticRegression(random_state=n_seed), False, True, 'lr_scale_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
         (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
@@ -176,6 +178,8 @@ def get_model_classifiers(n_threads, n_seed):
         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_2014'),
         (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_2014'),
         (KNeighborsClassifier(n_neighbors=1024, n_jobs=n_threads), False, True, 'knn_1024_2014'),
+        (KNeighborsClassifier(n_neighbors=1024, p=1, n_jobs=n_threads), False, True, 'knn_1024p1_2014'),
+        (KNeighborsClassifier(n_neighbors=1024, n_jobs=n_threads), False, False, 'knn_1024raw_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
