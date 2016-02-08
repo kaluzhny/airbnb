@@ -165,7 +165,7 @@ def get_model_classifiers(n_threads, n_seed):
     ]
 
     classifiers_2014 = [
-        (MultinomialNB(), True, False, 'nb_scale_2014'),
+        (MultinomialNB(), True, False, 'nb_log_2014'),
         (LogisticRegression(random_state=n_seed), False, True, 'lr_scale_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
