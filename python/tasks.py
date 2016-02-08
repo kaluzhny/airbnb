@@ -175,6 +175,7 @@ def get_model_classifiers(n_threads, n_seed):
         (KNeighborsClassifier(n_neighbors=128, n_jobs=n_threads), False, True, 'knn_128_2014'),
         (KNeighborsClassifier(n_neighbors=256, n_jobs=n_threads), False, True, 'knn_256_2014'),
         (KNeighborsClassifier(n_neighbors=512, n_jobs=n_threads), False, True, 'knn_512_2014'),
+        (KNeighborsClassifier(n_neighbors=1024, n_jobs=n_threads), False, True, 'knn_1024_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -229,8 +230,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
 
-    # print('calculating cv...')
-    # do_cv(x_train.data_, y_train, xgb, 50)
+    print('calculating cv...')
+    do_cv(x_train.data_, y_train, xgb, 50)
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
