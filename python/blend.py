@@ -81,12 +81,12 @@ def get_blend_features(classifiers, classes_count, x_train, y_train, x_test, ran
             x_test = apply_log(x_test)
 
         if isinstance(classifier, XGBClassifier):
-            bagging_count = 25
+            bagging_count = 10
         else:
             bagging_count = 0
 
         if bagging_count > 0:
-            classifier = BaggingClassifier(base_estimator=classifier, n_estimators=10,
+            classifier = BaggingClassifier(base_estimator=classifier, n_estimators=bagging_count,
                                            random_state=random_state, verbose=10)
 
         feature_train, feature_test = get_blend_feature_or_load_from_cache(classifier, scale, classes_count,
