@@ -220,10 +220,11 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_train, y_train, _, _ = divide_by_has_sessions(
         x_train, y_train)
 
+    y_train_6out = convert_outputs_to_others(y_train, ['CA', 'GB', 'PT', 'NL', 'DE', 'AU'])
     features_2014_train, features_2014_test = get_blend_features(
         classifiers_2014,
-        classes_count,
-        x_train, y_train,
+        6,
+        x_train, y_train_6out,
         x_test,
         n_seed,
         cache_dir=cache_dir)
