@@ -165,8 +165,8 @@ def get_model_classifiers(n_threads, n_seed):
     ]
 
     classifiers_2014 = [
-        (MultinomialNB(), True, False, 'nb_log_2014'),
-        (LogisticRegression(random_state=n_seed), False, True, 'lr_scale_2014'),
+        # (MultinomialNB(), True, False, 'nb_log_2014'),
+        # (LogisticRegression(random_state=n_seed), False, True, 'lr_scale_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc25_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
@@ -233,10 +233,10 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_test = x_test.append_horizontal(features_2014_test)
 
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=100, random_state=n_seed, verbose=10)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=10, random_state=n_seed, verbose=10)
 
     print('calculating cv...')
-    do_cv(x_train.data_, y_train, xgb, 50)
+    do_cv(x_train.data_, y_train, xgb, 10)
 
     probabilities = simple_predict(bag, x_train, y_train, x_test)
 
