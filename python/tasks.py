@@ -171,7 +171,7 @@ def get_model_classifiers(n_threads, n_seed):
         # (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_2014'),
         (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_2014'),
-        # (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_2014'),
+        (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_2014'),
         # (KNeighborsClassifier(n_neighbors=32, p=1, n_jobs=n_threads), False, True, 'knn_32p1_2014'),
         # (KNeighborsClassifier(n_neighbors=64, p=1, n_jobs=n_threads), False, True, 'knn_64p1_2014'),
         # (KNeighborsClassifier(n_neighbors=128, p=1, n_jobs=n_threads), False, True, 'knn_128p1_2014'),
