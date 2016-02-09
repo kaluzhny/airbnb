@@ -229,8 +229,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_seed,
         cache_dir=cache_dir)
 
-    x_train = x_train.append_horizontal(features_2014_train)
-    x_test = x_test.append_horizontal(features_2014_test)
+    # x_train = x_train.append_horizontal(features_2014_train)
+    # x_test = x_test.append_horizontal(features_2014_test)
 
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=3, random_state=n_seed, verbose=10)
