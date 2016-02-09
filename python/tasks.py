@@ -236,9 +236,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=10, random_state=n_seed, verbose=10)
 
     print('calculating cv...')
-    do_cv(x_train.data_, y_train, xgb, 10)
+    #do_cv(x_train.data_, y_train, xgb, 10)
 
-    probabilities = simple_predict(bag, x_train, y_train, x_test)
+    probabilities = simple_predict(xgb, x_train, y_train, x_test)
 
     return probabilities
 
