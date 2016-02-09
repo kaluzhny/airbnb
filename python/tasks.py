@@ -165,21 +165,19 @@ def get_model_classifiers(n_threads, n_seed):
     ]
 
     classifiers_2014 = [
-        # (MultinomialNB(), True, False, 'nb_log_2014'),
-        # (LogisticRegression(random_state=n_seed), False, True, 'lr_scale_2014'),
-        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
+        # (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc25_2014'),
-        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
-        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
+        # (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
+        # (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
         (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_2014'),
         (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_2014'),
-        (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_2014'),
-        (KNeighborsClassifier(n_neighbors=32, p=1, n_jobs=n_threads), False, True, 'knn_32p1_2014'),
-        (KNeighborsClassifier(n_neighbors=64, p=1, n_jobs=n_threads), False, True, 'knn_64p1_2014'),
-        (KNeighborsClassifier(n_neighbors=128, p=1, n_jobs=n_threads), False, True, 'knn_128p1_2014'),
-        (KNeighborsClassifier(n_neighbors=256, p=1, n_jobs=n_threads), False, True, 'knn_256p1_2014'),
+        # (XGBClassifier(objective='multi:softprob', max_depth=3, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_2014'),
+        # (KNeighborsClassifier(n_neighbors=32, p=1, n_jobs=n_threads), False, True, 'knn_32p1_2014'),
+        # (KNeighborsClassifier(n_neighbors=64, p=1, n_jobs=n_threads), False, True, 'knn_64p1_2014'),
+        # (KNeighborsClassifier(n_neighbors=128, p=1, n_jobs=n_threads), False, True, 'knn_128p1_2014'),
+        # (KNeighborsClassifier(n_neighbors=256, p=1, n_jobs=n_threads), False, True, 'knn_256p1_2014'),
         (KNeighborsClassifier(n_neighbors=512, p=1, n_jobs=n_threads), False, True, 'knn_512p1_2014'),
-        (KNeighborsClassifier(n_neighbors=1024, p=1, n_jobs=n_threads), False, True, 'knn_1024p1_2014'),
+        # (KNeighborsClassifier(n_neighbors=1024, p=1, n_jobs=n_threads), False, True, 'knn_1024p1_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -229,8 +227,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
         n_seed,
         cache_dir=cache_dir)
 
-    # x_train = x_train.append_horizontal(features_2014_train)
-    # x_test = x_test.append_horizontal(features_2014_test)
+    x_train = x_train.append_horizontal(features_2014_train)
+    x_test = x_test.append_horizontal(features_2014_test)
 
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=3, random_state=n_seed, verbose=10)
