@@ -124,7 +124,7 @@ def do_cv(x_cv, y_cv, classifier, n_fold):
 
 def do_grid_search(x_search, y_search, classifier, param_grid):
     search_classifier = GridSearchCV(
-        classifier,
+        clone(classifier),
         param_grid,
         cv=4,
         verbose=10,
@@ -169,12 +169,12 @@ def get_model_classifiers(n_threads, n_seed):
         # (LogisticRegression(random_state=n_seed), True, False, 'lr_2014'),
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
         # (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc25_2014'),
-        # (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
-        # (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
+        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
+        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
         # (RandomForestClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_e_2014'),
         # (ExtraTreesClassifier(n_estimators=600, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_e_2014'),
-        (RandomForestClassifier(n_estimators=300, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc300_2014'),
-        (ExtraTreesClassifier(n_estimators=300, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc300_2014'),
+        # (RandomForestClassifier(n_estimators=300, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc300_2014'),
+        # (ExtraTreesClassifier(n_estimators=300, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc300_2014'),
         # (RandomForestClassifier(n_estimators=300, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc300_e_2014'),
         # (ExtraTreesClassifier(n_estimators=300, criterion='entropy', n_jobs=n_threads, random_state=n_seed), False, False, 'etc300_e_2014'),
         # (XGBClassifier(objective='multi:softprob', max_depth=2, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg2softprob100_2014'),
