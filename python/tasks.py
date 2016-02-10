@@ -126,7 +126,7 @@ def do_grid_search(x_search, y_search, classifier, param_grid):
     search_classifier = GridSearchCV(
         classifier,
         param_grid,
-        cv=3,
+        cv=4,
         verbose=10,
         n_jobs=1,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
@@ -263,7 +263,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
     # print('calculating cv...')
-    # do_cv(x_train.data_, y_train, xgb, 3)
+    # do_cv(x_train.data_, y_train, xgb, 4)
     #probabilities = simple_predict(xgb, x_train, y_train, x_test)
 
     return probabilities
