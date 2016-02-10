@@ -60,6 +60,11 @@ def get_one_hot_columns(x):
     return x.filter_columns(new_columns)
 
 
+def remove_sessions_has_action_detail_columns(x):
+    new_columns = [column for column in x.columns_ if not column.startswith('s_has_action_detail_')]
+    return x.filter_columns(new_columns)
+
+
 def remove_sessions_columns(x):
     new_columns = [column for column in x.columns_ if not column.startswith('s_')]
     return x.filter_columns(new_columns)
