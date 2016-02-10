@@ -254,11 +254,9 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     print('grid search xgb...')
     best = do_grid_search(
         x_train.data_, y_train,
-        XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
+        XGBClassifier(objective='multi:softprob', max_depth=4, nthread=n_threads, seed=n_seed),
         {
-            'max_depth': [3, 4],
-            'n_estimators': [100, 200],
-            'learning_rate': [0.1, 0.2],
+            'n_estimators': [75, 100, 150],
         })
     probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
