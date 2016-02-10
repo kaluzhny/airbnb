@@ -145,9 +145,9 @@ def get_model_classifiers(n_threads, n_seed):
 
     classifiers_session_data = [
         (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc25_all'),
-        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_all'),
-        (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_all'),
         (XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, learning_rate=0.1, nthread=n_threads, seed=n_seed), False, False, 'xg4softprob100_all'),
+        (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_all'),
+        (ExtraTreesClassifier(n_estimators=400, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc400_all'),
         (KNeighborsClassifier(n_neighbors=512, p=1, n_jobs=n_threads), False, True, 'knn_512p1_all'),
         (KNeighborsClassifier(n_neighbors=1024, p=1, n_jobs=n_threads), False, True, 'knn_1024p1_all'),
         (KNeighborsClassifier(n_neighbors=512, p=2, n_jobs=n_threads), False, True, 'knn_512p2_all'),
