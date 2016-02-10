@@ -126,7 +126,7 @@ def do_grid_search(x_search, y_search, classifier, param_grid):
     search_classifier = GridSearchCV(
         classifier,
         param_grid,
-        cv=10,
+        cv=3,
         verbose=10,
         n_jobs=1,
         scoring=make_scorer((lambda true_values, predictions: score(predictions, true_values)), needs_proba=True)
@@ -138,6 +138,7 @@ def do_grid_search(x_search, y_search, classifier, param_grid):
     print('grid_scores_: ', search_classifier.grid_scores_)
     print('best_score_: ', search_classifier.best_score_)
     print('best_params_: ', search_classifier.best_params_)
+    return search_classifier.best_estimator_
 
 
 def get_model_classifiers(n_threads, n_seed):
@@ -194,7 +195,7 @@ def get_model_classifiers(n_threads, n_seed):
         (KNeighborsClassifier(n_neighbors=256, p=2, n_jobs=n_threads), False, True, 'knn_256p2_2014'),
         (KNeighborsClassifier(n_neighbors=512, p=2, n_jobs=n_threads), False, True, 'knn_512p2_2014'),
         (KNeighborsClassifier(n_neighbors=1024, p=2, n_jobs=n_threads), False, True, 'knn_1024p2_2014'),
-        (KNeighborsClassifier(n_neighbors=2048, p=2, n_jobs=n_threads), False, True, 'knn_2048p2_2014'),
+        # (KNeighborsClassifier(n_neighbors=2048, p=2, n_jobs=n_threads), False, True, 'knn_2048p2_2014'),
     ]
 
     return classifiers_session_data, classifiers_no_session_data, classifiers_2014
@@ -250,10 +251,20 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     xgb = XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed)
     bag = BaggingClassifier(base_estimator=xgb, n_estimators=3, random_state=n_seed, verbose=10)
 
-    print('calculating cv...')
-    do_cv(x_train.data_, y_train, xgb, 3)
+    print('grid search xgb...')
+    best = do_grid_search(
+        x_train.data_, y_train,
+        XGBClassifier(objective='multi:softprob', nthread=n_threads, seed=n_seed),
+        {
+            'max_depth': [3, 4],
+            'n_estimators': [100, 200],
+            'learning_rate': [0.1, 0.2],
+        })
+    probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
-    probabilities = simple_predict(bag, x_train, y_train, x_test)
+    # print('calculating cv...')
+    # do_cv(x_train.data_, y_train, xgb, 3)
+    #probabilities = simple_predict(xgb, x_train, y_train, x_test)
 
     return probabilities
 

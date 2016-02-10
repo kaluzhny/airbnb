@@ -162,7 +162,7 @@ def predict_blend_feature(x, classifiers, scalers, classes_count, n_folds):
     return blend_test_all.mean(1)
 
 
-def simple_predict(classifier, x_train, y_train, x_test):
+def simple_predict(classifier, x_train, y_train, x_test, refit=True):
     x_train_data = x_train.data_
     x_test_data = x_test.data_
     print('x_train shape: ', x_train_data.shape)
@@ -171,10 +171,11 @@ def simple_predict(classifier, x_train, y_train, x_test):
 
     # classifier.fit(x_train_data, y_train, eval_metric='ndcg@5')
 
-    if isinstance(classifier, XGBClassifier):
-        classifier.fit(x_train_data, y_train, eval_metric=ndcg5_eval)
-    else:
-        classifier.fit(x_train_data, y_train)
+    if refit:
+        if isinstance(classifier, XGBClassifier):
+            classifier.fit(x_train_data, y_train, eval_metric=ndcg5_eval)
+        else:
+            classifier.fit(x_train_data, y_train)
 
     # print_xgboost_scores(classifier, x_train.columns_)
     probabilities = classifier.predict_proba(x_test_data)
