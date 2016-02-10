@@ -167,8 +167,9 @@ def get_model_classifiers(n_threads, n_seed):
 
     classifiers_2014 = [
         # (LogisticRegression(random_state=n_seed), True, False, 'lr_2014'),
-        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
+        # (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=10, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
         # (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=25, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc25_2014'),
+        (AdaBoostClassifier(base_estimator=ExtraTreesClassifier(n_estimators=100, n_jobs=n_threads, random_state=n_seed), random_state=n_seed), False, False, 'adaetc10_2014'),
         # (RandomForestClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc600_2014'),
         # (ExtraTreesClassifier(n_estimators=600, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'etc600_2014'),
         # (RandomForestClassifier(n_estimators=800, criterion='gini', n_jobs=n_threads, random_state=n_seed), False, False, 'rfc800_2014'),
