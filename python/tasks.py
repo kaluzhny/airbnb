@@ -226,7 +226,7 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     x_test = x_test.append_horizontal(session_features_test)
 
     xgb = XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed)
-    bag = BaggingClassifier(base_estimator=xgb, n_estimators=3, random_state=n_seed, verbose=10)
+    bag = BaggingClassifier(base_estimator=xgb, n_estimators=5, random_state=n_seed, verbose=10)
 
     # print('grid search xgb...')
     # best = do_grid_search(
@@ -237,18 +237,18 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     #     })
     # probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
-    print('grid search xgb...')
-    best = do_grid_search(
-        x_train.data_, y_train,
-        XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed),
-        {
-            'max_depth': [3, 4, 5],
-        })
-    probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
+    # print('grid search xgb...')
+    # best = do_grid_search(
+    #     x_train.data_, y_train,
+    #     XGBClassifier(objective='multi:softprob', max_depth=4, n_estimators=100, nthread=n_threads, seed=n_seed),
+    #     {
+    #         'max_depth': [3, 4, 5],
+    #     })
+    # probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
-    # print('calculating cv...')
-    # do_cv(x_train.data_, y_train, xgb, 4)
-    # probabilities = simple_predict(xgb, x_train, y_train, x_test)
+    print('calculating cv...')
+    do_cv(x_train.data_, y_train, xgb, 5)
+    probabilities = simple_predict(xgb, x_train, y_train, x_test)
 
     return probabilities
 
