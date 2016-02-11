@@ -247,8 +247,8 @@ def run_model(x_train, y_train, x_test, classes_count, classifier, n_threads, n_
     # probabilities = simple_predict(best, x_train, y_train, x_test, refit=False)
 
     print('calculating cv...')
-    do_cv(x_train.data_, y_train, xgb, 5)
-    probabilities = simple_predict(xgb, x_train, y_train, x_test)
+    do_cv(x_train.data_, y_train, bag, 5)
+    probabilities = simple_predict(bag, x_train, y_train, x_test)
 
     return probabilities
 
